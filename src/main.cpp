@@ -1,13 +1,4 @@
-#include <iostream>
 
-int main()
-{
-    std::cout << "Oil Tycoon started successfully.\n";
-
-    return 0;
-}
-
-/*
 #include "Game.h"
 
 int main()
@@ -17,4 +8,3 @@ int main()
 
     return 0;
 }
-*/

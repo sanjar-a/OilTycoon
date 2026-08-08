@@ -1,0 +1,54 @@
+#ifndef OILTYCOON_GAME_H
+#define OILTYCOON_GAME_H
+
+#include "Company.h"
+
+#include <random>
+
+class Game
+{
+private:
+    int currentDay;
+
+    double oilPricePerBarrel;
+
+    Company company;
+
+    std::mt19937 randomGenerator;
+    std::uniform_real_distribution<double> randomDistribution;
+
+    bool running;
+
+public:
+    Game();
+
+    void run();
+
+private:
+    void displayMainMenu() const;
+    void processCommand(int command);
+
+    void advanceDay();
+
+    void startExploration();
+    void startDrilling();
+
+    void buildTransportation();
+    void buildStorage();
+
+    void setMaintenancePolicy();
+    void repairWell();
+
+    void sellOil();
+    void buySpareParts();
+
+    void showStatus() const;
+    void showWells() const;
+    void showReservoirs() const;
+    void showTechnologies() const;
+    void unlockTechnology();
+
+    void printProjectStatus() const;
+};
+
+#endif

@@ -11,9 +11,25 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(OilTycoon
     src/main.cpp
+    src/Types.cpp
+    src/Reservoir.cpp
+    src/Well.cpp
+    src/ExplorationProject.cpp
+    src/DrillingProject.cpp
+    src/TransportationNetwork.cpp
+    src/StorageFacility.cpp
+    src/Technology.cpp
+    src/Company.cpp
+    src/Game.cpp
 )
 
 target_include_directories(OilTycoon
     PRIVATE
         ${PROJECT_SOURCE_DIR}/include
 )
+
+if (MSVC)
+    target_compile_options(OilTycoon PRIVATE /W4)
+else()
+    target_compile_options(OilTycoon PRIVATE -Wall -Wextra -Wpedantic)
+endif()
