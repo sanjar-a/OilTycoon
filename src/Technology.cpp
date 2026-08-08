@@ -262,7 +262,10 @@ double TechnologyTree::getEffect(
     TechnologyMetric metric
 ) const
 {
-    double result = 1.0;
+    double result =
+        (metric == TechnologyMetric::MaximumDepth)
+            ? 3000.0
+            : 1.0;
 
     for (const Technology& technology : technologies)
     {
