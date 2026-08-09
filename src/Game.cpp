@@ -71,7 +71,7 @@ void Game::displayMainMenu() const
         << "5. Build Storage Facility\n"
         << "6. Set Maintenance Policy\n"
         << "7. Repair Well\n"
-        << "8. Sell 15,000 bbl\n"
+        << "8. Sell oil\n"
         << "9. Buy Spare Parts\n"
         << "10. Show Status\n"
         << "11. Show Wells\n"
@@ -409,25 +409,83 @@ void Game::repairWell()
 
 void Game::sellOil()
 {
-    constexpr double salesVolume = 15000.0;
+    std::cout
+        << "\n========== SELL OIL ==========\n"
+        << "1. Sell all available oil\n"
+        << "2. Sell specific volume\n"
+        << "0. Back\n"
+        << "Select: ";
+
+    int choice = 0;
+    std::cin >> choice;
+
+    if (choice == 0)
+    {
+        return;
+    }
+
+    double requestedVolume = 0.0;
+
+    if (choice == 1)
+    {
+        requestedVolume =
+            company.getStorage().getInventory();
+    }
+    else if (choice == 2)
+    {
+        std::cout
+            << "Enter volume to sell (bbl): ";
+
+        std::cin >> requestedVolume;
+    }
+    else
+    {
+        std::cout
+            << "Invalid option.\n";
+        return;
+    }
+
+    if (requestedVolume <= 0.0)
+    {
+        std::cout
+            << "Volume must be greater than zero.\n";
+        return;
+    }
+
+    const double availableOil =
+        company.getStorage().getInventory();
+
+    const double expectedSale =
+        std::min(
+            requestedVolume,
+            availableOil
+        );
+
+    if (expectedSale <= 0.0)
+    {
+        std::cout
+            << "No oil is available for sale.\n";
+        return;
+    }
 
     if (company.sellOil(
-            salesVolume,
+            requestedVolume,
             oilPricePerBarrel
         ))
     {
         std::cout
+            << std::fixed
+            << std::setprecision(1)
             << "Sold "
-            << salesVolume
+            << expectedSale
             << " bbl for $"
-            << salesVolume * oilPricePerBarrel
+            << expectedSale * oilPricePerBarrel
             << ".\n";
     }
     else
     {
         std::cout
-            << "Could not sell 15,000 bbl.\n"
-            << "Check storage inventory.\n";
+            << "Could not sell oil.\n";
     }
 }
 
