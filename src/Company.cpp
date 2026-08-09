@@ -333,7 +333,7 @@ void Company::advanceDrilling()
 
     ++nextWellId;
 
-    hasCommercialDiscovery = false;
+    
     drillingProject.reset();
 }
 
