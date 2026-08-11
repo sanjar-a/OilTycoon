@@ -66,6 +66,11 @@ double TransportationNetwork::getCostPerBarrel() const
     return costPerBarrel;
 }
 
+void TransportationNetwork::setCostPerBarrel(double cost)
+{
+    costPerBarrel = cost;
+}
+
 double TransportationNetwork::getRange() const
 {
     return range;

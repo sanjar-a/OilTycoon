@@ -11,6 +11,8 @@ private:
     int currentDay;
 
     double oilPricePerBarrel;
+    static constexpr double MIN_OIL_PRICE = 65.0;
+    static constexpr double MAX_OIL_PRICE = 75.0;
 
     Company company;
 
@@ -60,6 +62,7 @@ private:
     void upgradeTransportationRange();
     void showStorageFacilities() const;
     void showTransportationNetworks() const;
+    void updateOilPrice();
 };
 
 #endif

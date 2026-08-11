@@ -4,6 +4,8 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <cstdlib>
+#include <ctime>
 
 Game::Game()
     : currentDay(1),
@@ -315,6 +317,7 @@ void Game::advanceDay()
     }
 
     ++currentDay;
+    updateOilPrice();
 }
 
 void Game::startExploration()
@@ -626,6 +629,13 @@ void Game::showStatus() const
                company.getMaintenancePolicy()
            )
         << "\n\n";
+
+    std::cout
+        << "Oil Price: $"
+        << std::fixed
+        << std::setprecision(2)
+        << oilPricePerBarrel
+        << " / bbl\n";
 
     // =========================
     // TRANSPORTATION
@@ -1341,4 +1351,20 @@ void Game::upgradeTransportationRange()
         << " to "
         << newRange
         << " km.\n";
+}
+
+void Game::updateOilPrice()
+{
+    const int change = std::rand() % 3 - 1; // -1, 0, +1
+
+    oilPricePerBarrel += static_cast<double>(change);
+
+    if (oilPricePerBarrel < MIN_OIL_PRICE)
+    {
+        oilPricePerBarrel = MIN_OIL_PRICE;
+    }
+    else if (oilPricePerBarrel > MAX_OIL_PRICE)
+    {
+        oilPricePerBarrel = MAX_OIL_PRICE;
+    }
 }

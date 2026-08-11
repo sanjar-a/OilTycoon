@@ -37,6 +37,7 @@ public:
     double getCapacityPerDay() const;
     void setCapacityPerDay(double capacity);
     double getCostPerBarrel() const;
+    void setCostPerBarrel(double cost);
     double getRange() const;
     void setRange(double range);
 

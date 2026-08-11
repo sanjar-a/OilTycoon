@@ -553,6 +553,12 @@ double Company::processTransportation(
         transportedOil += transported;
         remainingOil -= transported;
 
+        const double transportationCost =
+            transported *
+            network->getCostPerBarrel();
+
+        money -= transportationCost;
+
         if (remainingOil <= 0.0)
         {
             break;
