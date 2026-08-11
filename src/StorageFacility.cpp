@@ -2,14 +2,33 @@
 
 #include <algorithm>
 
-StorageFacility::StorageFacility()
-    : built(false),
+StorageFacility::StorageFacility(int facilityId)
+    : id(facilityId),
+      built(false),
       constructionDaysRemaining(0),
+      baseCapacity(0.0),
       capacity(0.0),
       inventory(0.0),
       costPerBarrel(0.0),
-      constructionCost(0.0)
+      constructionCost(0.0),
+      capacityUpgradeTier(0),
+      costUpgradeTier(0)
 {
+}
+
+int StorageFacility::getId() const
+{
+    return id;
+}
+
+int StorageFacility::getCapacityUpgradeTier() const
+{
+    return capacityUpgradeTier;
+}
+
+int StorageFacility::getCostUpgradeTier() const
+{
+    return costUpgradeTier;
 }
 
 bool StorageFacility::isBuilt() const
@@ -63,8 +82,48 @@ void StorageFacility::startConstruction(
     constructionDaysRemaining = constructionDays;
 
     constructionCost = cost;
+
+    baseCapacity = storageCapacity;
     capacity = storageCapacity;
+
     costPerBarrel = storageCostPerBarrel;
+
+    capacityUpgradeTier = 0;
+    costUpgradeTier = 0;
+}
+
+bool StorageFacility::upgradeCapacity(
+    double multiplier,
+    int tier
+)
+{
+    if (!built || tier <= capacityUpgradeTier)
+    {
+        return false;
+    }
+
+    capacity = baseCapacity * multiplier;
+    capacityUpgradeTier = tier;
+
+    return true;
+}
+
+bool StorageFacility::upgradeCostPerBarrel(
+    double multiplier,
+    int tier
+)
+{
+    if (!built || tier <= costUpgradeTier)
+    {
+        return false;
+    }
+
+    costPerBarrel =
+        0.50 * multiplier;
+
+    costUpgradeTier = tier;
+
+    return true;
 }
 
 bool StorageFacility::advanceConstruction()
@@ -120,4 +179,9 @@ double StorageFacility::removeOil(double barrels)
 double StorageFacility::sellOil(double barrels)
 {
     return removeOil(barrels);
+}
+
+void StorageFacility::setCostPerBarrel(double cost)
+{
+    costPerBarrel = cost;
 }

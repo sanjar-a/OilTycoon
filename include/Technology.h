@@ -4,6 +4,12 @@
 #include <string>
 #include <vector>
 
+enum class TechnologyDomain
+{
+    Operational,
+    Infrastructure
+};
+
 enum class TechnologyCategory
 {
     Exploration,
@@ -33,13 +39,13 @@ struct Technology
     std::string id;
     std::string name;
 
+    TechnologyDomain domain;
     TechnologyCategory category;
     TechnologyMetric metric;
 
     int tier;
 
     double cost;
-
     double effect;
 
     std::string prerequisiteId;
@@ -62,11 +68,25 @@ public:
         double& companyMoney
     );
 
-    bool isUnlocked(const std::string& technologyId) const;
+    bool isUnlocked(
+        const std::string& technologyId
+    ) const;
 
     double getEffect(
         TechnologyCategory category,
         TechnologyMetric metric
+    ) const;
+
+    double getEffectAtTier(
+        TechnologyCategory category,
+        TechnologyMetric metric,
+        int tier
+    ) const;
+
+    bool isInfrastructureTechnologyUnlocked(
+        TechnologyCategory category,
+        TechnologyMetric metric,
+        int tier
     ) const;
 
     int getHighestTier(

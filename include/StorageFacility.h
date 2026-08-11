@@ -4,17 +4,26 @@
 class StorageFacility
 {
 private:
+    int id;
+
     bool built;
     int constructionDaysRemaining;
 
+    double baseCapacity;
     double capacity;
+
     double inventory;
     double costPerBarrel;
 
     double constructionCost;
 
+    int capacityUpgradeTier;
+    int costUpgradeTier;
+
 public:
-    StorageFacility();
+    explicit StorageFacility(int facilityId);
+
+    int getId() const;
 
     bool isBuilt() const;
     bool isUnderConstruction() const;
@@ -28,6 +37,9 @@ public:
     double getCostPerBarrel() const;
     double getConstructionCost() const;
 
+    int getCapacityUpgradeTier() const;
+    int getCostUpgradeTier() const;
+
     void startConstruction(
         int constructionDays,
         double constructionCost,
@@ -37,10 +49,23 @@ public:
 
     bool advanceConstruction();
 
+    bool upgradeCapacity(
+        double multiplier,
+        int tier
+    );
+
+    bool upgradeCostPerBarrel(
+        double multiplier,
+        int tier
+    );
+
     double addOil(double barrels);
     double removeOil(double barrels);
 
     double sellOil(double barrels);
+
+    
+    void setCostPerBarrel(double cost);
 };
 
 #endif

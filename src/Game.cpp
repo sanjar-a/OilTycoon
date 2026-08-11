@@ -1,5 +1,6 @@
 #include "Game.h"
 
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -78,7 +79,67 @@ void Game::displayMainMenu() const
         << "12. Show Reservoirs\n"
         << "13. Show Technologies\n"
         << "14. Unlock Technology\n"
+        << "15. Manage Infrastructure\n"
         << "0. Exit\n";
+}
+
+void Game::manageInfrastructure()
+{
+    while (true)
+    {
+        std::cout
+            << "\n========== INFRASTRUCTURE ==========\n"
+            << "1. Show storage facilities\n"
+            << "2. Upgrade storage capacity\n"
+            << "3. Upgrade storage cost\n"
+            << "4. Show transportation networks\n"
+            << "5. Upgrade transportation capacity\n"
+            << "6. Upgrade transportation cost\n"
+            << "7. Upgrade transportation range\n"
+            << "0. Back\n"
+            << "Select: ";
+
+        int choice = 0;
+        std::cin >> choice;
+
+        switch (choice)
+        {
+        case 1:
+            showStorageFacilities();
+            break;
+
+        case 2:
+            upgradeStorageCapacity();
+            break;
+
+        case 3:
+            upgradeStorageCost();
+            break;
+
+        case 4:
+            showTransportationNetworks();
+            break;
+
+        case 5:
+            upgradeTransportationCapacity();
+            break;
+
+        case 6:
+            upgradeTransportationCost();
+            break;
+
+        case 7:
+            upgradeTransportationRange();
+            break;
+
+        case 0:
+            return;
+
+        default:
+            std::cout
+                << "Invalid option.\n";
+        }
+    }
 }
 
 void Game::processCommand(int command)
@@ -139,6 +200,10 @@ void Game::processCommand(int command)
 
     case 14:
         unlockTechnology();
+        break;
+
+    case 15:
+        manageInfrastructure();
         break;
 
     case 0:
@@ -428,8 +493,16 @@ void Game::sellOil()
 
     if (choice == 1)
     {
-        requestedVolume =
-            company.getStorage().getInventory();
+        // Calculate total oil across all built storage facilities.
+        for (const auto& storage :
+             company.getStorageFacilities())
+        {
+            if (storage->isBuilt())
+            {
+                requestedVolume +=
+                    storage->getInventory();
+            }
+        }
     }
     else if (choice == 2)
     {
@@ -452,9 +525,29 @@ void Game::sellOil()
         return;
     }
 
-    const double availableOil =
-        company.getStorage().getInventory();
+    // Calculate total oil actually available
+    // across all built storage facilities.
+    double availableOil = 0.0;
 
+    for (const auto& storage :
+         company.getStorageFacilities())
+    {
+        if (storage->isBuilt())
+        {
+            availableOil +=
+                storage->getInventory();
+        }
+    }
+
+    if (availableOil <= 0.0)
+    {
+        std::cout
+            << "No oil is available for sale.\n";
+        return;
+    }
+
+    // If the requested volume exceeds available oil,
+    // Company::sellOil() will sell everything available.
     const double expectedSale =
         std::min(
             requestedVolume,
@@ -530,63 +623,136 @@ void Game::showStatus() const
         << company.getSpareParts()
         << "\nMaintenance Policy: "
         << maintenancePolicyToString(
-            company.getMaintenancePolicy()
-        )
+               company.getMaintenancePolicy()
+           )
         << "\n\n";
+
+    // =========================
+    // TRANSPORTATION
+    // =========================
+
+    const auto& transportationNetworks =
+        company.getTransportationNetworks();
+
+    int builtTransportation = 0;
+    int constructionTransportation = 0;
+
+    double totalTransportCapacity = 0.0;
+
+    int constructionDaysRemaining = 0;
+
+    for (const auto& network :
+         transportationNetworks)
+    {
+        if (network->isBuilt())
+        {
+            ++builtTransportation;
+
+            totalTransportCapacity +=
+                network->getCapacityPerDay();
+        }
+        else if (network->isUnderConstruction())
+        {
+            ++constructionTransportation;
+
+            constructionDaysRemaining =
+                std::max(
+                    constructionDaysRemaining,
+                    network->getConstructionDaysRemaining()
+                );
+        }
+    }
 
     std::cout
         << "Transportation: ";
 
-    if (company.getTransportation().isBuilt())
+    if (builtTransportation > 0)
     {
         std::cout
-            << "BUILT | Capacity: "
-            << company.getTransportation()
-                   .getCapacityPerDay()
+            << builtTransportation
+            << " BUILT | Total Capacity: "
+            << totalTransportCapacity
             << " bbl/day\n";
     }
-    else if (
-        company.getTransportation()
-            .isUnderConstruction()
-    )
+    else if (constructionTransportation > 0)
     {
         std::cout
-            << "UNDER CONSTRUCTION | "
-            << company.getTransportation()
-                   .getConstructionDaysRemaining()
+            << constructionTransportation
+            << " UNDER CONSTRUCTION | "
+            << constructionDaysRemaining
             << " days remaining\n";
     }
     else
     {
-        std::cout << "NOT BUILT\n";
+        std::cout
+            << "NOT BUILT\n";
+    }
+
+    // =========================
+    // STORAGE
+    // =========================
+
+    const auto& storageFacilities =
+        company.getStorageFacilities();
+
+    int builtStorage = 0;
+    int constructionStorage = 0;
+
+    double totalStorageCapacity = 0.0;
+    double totalStoredOil = 0.0;
+
+    int storageConstructionDaysRemaining = 0;
+
+    for (const auto& storage :
+         storageFacilities)
+    {
+        if (storage->isBuilt())
+        {
+            ++builtStorage;
+
+            totalStorageCapacity +=
+                storage->getCapacity();
+
+            totalStoredOil +=
+                storage->getInventory();
+        }
+        else if (storage->isUnderConstruction())
+        {
+            ++constructionStorage;
+
+            storageConstructionDaysRemaining =
+                std::max(
+                    storageConstructionDaysRemaining,
+                    storage->getConstructionDaysRemaining()
+                );
+        }
     }
 
     std::cout
         << "Storage: ";
 
-    if (company.getStorage().isBuilt())
+    if (builtStorage > 0)
     {
         std::cout
-            << "BUILT | Inventory: "
-            << company.getStorage().getInventory()
+            << builtStorage
+            << " BUILT | Inventory: "
+            << totalStoredOil
             << " / "
-            << company.getStorage().getCapacity()
+            << totalStorageCapacity
             << " bbl\n";
     }
-    else if (
-        company.getStorage()
-            .isUnderConstruction()
-    )
+    else if (constructionStorage > 0)
     {
         std::cout
-            << "UNDER CONSTRUCTION | "
-            << company.getStorage()
-                   .getConstructionDaysRemaining()
+            << constructionStorage
+            << " UNDER CONSTRUCTION | "
+            << storageConstructionDaysRemaining
             << " days remaining\n";
     }
     else
     {
-        std::cout << "NOT BUILT\n";
+        std::cout
+            << "NOT BUILT\n";
     }
 
     printProjectStatus();
@@ -662,4 +828,505 @@ void Game::printProjectStatus() const
         std::cout
             << "Drilling: inactive\n";
     }
+}
+
+void Game::showStorageFacilities() const
+{
+    const auto& storages =
+        company.getStorageFacilities();
+
+    std::cout
+        << "\n========== STORAGE FACILITIES ==========\n";
+
+    if (storages.empty())
+    {
+        std::cout
+            << "No storage facilities.\n";
+        return;
+    }
+
+    for (const auto& storage : storages)
+    {
+        std::cout
+            << "Storage #"
+            << storage->getId()
+            << " | ";
+
+        if (storage->isBuilt())
+        {
+            std::cout
+                << "BUILT"
+                << " | Inventory: "
+                << storage->getInventory()
+                << " / "
+                << storage->getCapacity()
+                << " bbl"
+                << " | Capacity Tier: "
+                << storage->getCapacityUpgradeTier()
+                << " | Cost Tier: "
+                << storage->getCostUpgradeTier()
+                << '\n';
+        }
+        else if (storage->isUnderConstruction())
+        {
+            std::cout
+                << "UNDER CONSTRUCTION | "
+                << storage->getConstructionDaysRemaining()
+                << " days remaining\n";
+        }
+        else
+        {
+            std::cout
+                << "NOT BUILT\n";
+        }
+    }
+}
+
+void Game::upgradeStorageCapacity()
+{
+    showStorageFacilities();
+
+    std::cout
+        << "Enter Storage ID to upgrade: ";
+
+    int id = 0;
+    std::cin >> id;
+
+    if (company.upgradeStorageCapacity(id))
+    {
+        std::cout
+            << "Storage capacity upgraded successfully.\n";
+    }
+    else
+    {
+        std::cout
+            << "Storage capacity upgrade failed.\n"
+            << "Check that the facility exists, is built,\n"
+            << "and the required technology is unlocked.\n";
+    }
+}
+
+void Game::showTransportationNetworks() const
+{
+    const auto& networks =
+        company.getTransportationNetworks();
+
+    std::cout
+        << "\n======= TRANSPORTATION NETWORKS =======\n";
+
+    if (networks.empty())
+    {
+        std::cout
+            << "No transportation networks.\n";
+        return;
+    }
+
+    for (const auto& network : networks)
+    {
+        std::cout
+            << "Transport #"
+            << network->getId()
+            << " | ";
+
+        if (network->isBuilt())
+        {
+            std::cout
+                << "BUILT"
+                << " | Capacity: "
+                << network->getCapacityPerDay()
+                << " bbl/day"
+                << " | Range: "
+                << network->getRange()
+                << " km"
+                << " | Capacity Tier: "
+                << network->getCapacityUpgradeTier()
+                << " | Cost Tier: "
+                << network->getCostUpgradeTier()
+                << " | Range Tier: "
+                << network->getRangeUpgradeTier()
+                << '\n';
+        }
+        else if (network->isUnderConstruction())
+        {
+            std::cout
+                << "UNDER CONSTRUCTION | "
+                << network->getConstructionDaysRemaining()
+                << " days remaining\n";
+        }
+        else
+        {
+            std::cout
+                << "NOT BUILT\n";
+        }
+    }
+}
+
+void Game::upgradeStorageCost()
+{
+    std::cout
+        << "\n========== UPGRADE STORAGE COST ==========\n";
+
+    const auto& storages =
+        company.getStorageFacilities();
+
+    if (storages.empty())
+    {
+        std::cout
+            << "No storage facilities available.\n";
+        return;
+    }
+
+    bool hasBuiltStorage = false;
+
+    for (const auto& storage : storages)
+    {
+        if (storage->isBuilt())
+        {
+            hasBuiltStorage = true;
+            break;
+        }
+    }
+
+    if (!hasBuiltStorage)
+    {
+        std::cout
+            << "No built storage facilities available.\n";
+        return;
+    }
+
+    std::cout
+        << "Select storage facility to upgrade:\n";
+
+    for (std::size_t i = 0; i < storages.size(); ++i)
+    {
+        if (storages[i]->isBuilt())
+        {
+            std::cout
+                << i + 1
+                << ". Storage #"
+                << i + 1
+                << " | Cost per barrel: "
+                << storages[i]->getCostPerBarrel()
+                << "\n";
+        }
+    }
+
+    std::cout
+        << "0. Back\n"
+        << "Select: ";
+
+    int choice = 0;
+    std::cin >> choice;
+
+    if (choice == 0)
+    {
+        return;
+    }
+
+    if (choice < 1 ||
+        choice > static_cast<int>(storages.size()) ||
+        !storages[choice - 1]->isBuilt())
+    {
+        std::cout
+            << "Invalid storage facility.\n";
+        return;
+    }
+
+    auto& storage =
+        *storages[choice - 1];
+
+    const double currentCost =
+        storage.getCostPerBarrel();
+
+    const double newCost =
+        currentCost * 0.85;
+
+    storage.setCostPerBarrel(newCost);
+
+    std::cout
+        << "Storage #"
+        << choice
+        << " cost per barrel upgraded from "
+        << currentCost
+        << " to "
+        << newCost
+        << ".\n";
+}
+
+
+void Game::upgradeTransportationCapacity()
+{
+    std::cout
+        << "\n========== UPGRADE TRANSPORTATION CAPACITY ==========\n";
+
+    const auto& networks =
+        company.getTransportationNetworks();
+
+    if (networks.empty())
+    {
+        std::cout
+            << "No transportation networks available.\n";
+        return;
+    }
+
+    bool hasBuiltNetwork = false;
+
+    for (const auto& network : networks)
+    {
+        if (network->isBuilt())
+        {
+            hasBuiltNetwork = true;
+            break;
+        }
+    }
+
+    if (!hasBuiltNetwork)
+    {
+        std::cout
+            << "No built transportation networks available.\n";
+        return;
+    }
+
+    std::cout
+        << "Select transportation network to upgrade:\n";
+
+    for (std::size_t i = 0; i < networks.size(); ++i)
+    {
+        if (networks[i]->isBuilt())
+        {
+            std::cout
+                << i + 1
+                << ". Transportation #"
+                << i + 1
+                << " | Capacity: "
+                << networks[i]->getCapacityPerDay()
+                << " bbl/day\n";
+        }
+    }
+
+    std::cout
+        << "0. Back\n"
+        << "Select: ";
+
+    int choice = 0;
+    std::cin >> choice;
+
+    if (choice == 0)
+    {
+        return;
+    }
+
+    if (choice < 1 ||
+        choice > static_cast<int>(networks.size()) ||
+        !networks[choice - 1]->isBuilt())
+    {
+        std::cout
+            << "Invalid transportation network.\n";
+        return;
+    }
+
+    auto& network =
+        *networks[choice - 1];
+
+    const double currentCapacity =
+        network.getCapacityPerDay();
+
+    const double newCapacity =
+        currentCapacity * 1.25;
+
+    network.setCapacityPerDay(newCapacity);
+
+    std::cout
+        << "Transportation #"
+        << choice
+        << " capacity upgraded from "
+        << currentCapacity
+        << " to "
+        << newCapacity
+        << " bbl/day.\n";
+}
+
+
+void Game::upgradeTransportationCost()
+{
+    std::cout
+        << "\n========== UPGRADE TRANSPORTATION COST ==========\n";
+
+    const auto& networks =
+        company.getTransportationNetworks();
+
+    if (networks.empty())
+    {
+        std::cout
+            << "No transportation networks available.\n";
+        return;
+    }
+
+    bool hasBuiltNetwork = false;
+
+    for (const auto& network : networks)
+    {
+        if (network->isBuilt())
+        {
+            hasBuiltNetwork = true;
+            break;
+        }
+    }
+
+    if (!hasBuiltNetwork)
+    {
+        std::cout
+            << "No built transportation networks available.\n";
+        return;
+    }
+
+    std::cout
+        << "Select transportation network to upgrade:\n";
+
+    for (std::size_t i = 0; i < networks.size(); ++i)
+    {
+        if (networks[i]->isBuilt())
+        {
+            std::cout
+                << i + 1
+                << ". Transportation #"
+                << i + 1
+                << " | Cost per barrel: "
+                << networks[i]->getCostPerBarrel()
+                << "\n";
+        }
+    }
+
+    std::cout
+        << "0. Back\n"
+        << "Select: ";
+
+    int choice = 0;
+    std::cin >> choice;
+
+    if (choice == 0)
+    {
+        return;
+    }
+
+    if (choice < 1 ||
+        choice > static_cast<int>(networks.size()) ||
+        !networks[choice - 1]->isBuilt())
+    {
+        std::cout
+            << "Invalid transportation network.\n";
+        return;
+    }
+
+    auto& network =
+        *networks[choice - 1];
+
+    const double currentCost =
+        network.getCostPerBarrel();
+
+    const double newCost =
+        currentCost * 0.85;
+
+
+    std::cout
+        << "Transportation #"
+        << choice
+        << " cost per barrel upgraded from "
+        << currentCost
+        << " to "
+        << newCost
+        << ".\n";
+}
+
+
+void Game::upgradeTransportationRange()
+{
+    std::cout
+        << "\n========== UPGRADE TRANSPORTATION RANGE ==========\n";
+
+    const auto& networks =
+        company.getTransportationNetworks();
+
+    if (networks.empty())
+    {
+        std::cout
+            << "No transportation networks available.\n";
+        return;
+    }
+
+    bool hasBuiltNetwork = false;
+
+    for (const auto& network : networks)
+    {
+        if (network->isBuilt())
+        {
+            hasBuiltNetwork = true;
+            break;
+        }
+    }
+
+    if (!hasBuiltNetwork)
+    {
+        std::cout
+            << "No built transportation networks available.\n";
+        return;
+    }
+
+    std::cout
+        << "Select transportation network to upgrade:\n";
+
+    for (std::size_t i = 0; i < networks.size(); ++i)
+    {
+        if (networks[i]->isBuilt())
+        {
+            std::cout
+                << i + 1
+                << ". Transportation #"
+                << i + 1
+                << " | Range: "
+                << networks[i]->getRange()
+                << " km\n";
+        }
+    }
+
+    std::cout
+        << "0. Back\n"
+        << "Select: ";
+
+    int choice = 0;
+    std::cin >> choice;
+
+    if (choice == 0)
+    {
+        return;
+    }
+
+    if (choice < 1 ||
+        choice > static_cast<int>(networks.size()) ||
+        !networks[choice - 1]->isBuilt())
+    {
+        std::cout
+            << "Invalid transportation network.\n";
+        return;
+    }
+
+    auto& network =
+        *networks[choice - 1];
+
+    const double currentRange =
+        network.getRange();
+
+    const double newRange =
+        currentRange + 150.0;
+
+    network.setRange(newRange);
+
+    std::cout
+        << "Transportation #"
+        << choice
+        << " range upgraded from "
+        << currentRange
+        << " to "
+        << newRange
+        << " km.\n";
 }

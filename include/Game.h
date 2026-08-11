@@ -49,6 +49,17 @@ private:
     void unlockTechnology();
 
     void printProjectStatus() const;
+
+    void manageInfrastructure();
+
+    void upgradeStorageCapacity();
+    void upgradeStorageCost();
+
+    void upgradeTransportationCapacity();
+    void upgradeTransportationCost();
+    void upgradeTransportationRange();
+    void showStorageFacilities() const;
+    void showTransportationNetworks() const;
 };
 
 #endif

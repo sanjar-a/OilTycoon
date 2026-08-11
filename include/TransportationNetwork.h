@@ -4,17 +4,30 @@
 class TransportationNetwork
 {
 private:
+    int id;
+
     bool built;
     int constructionDaysRemaining;
 
+    double baseCapacityPerDay;
     double capacityPerDay;
+
+    double baseCostPerBarrel;
     double costPerBarrel;
+
+    double baseRange;
     double range;
 
     double constructionCost;
 
+    int capacityUpgradeTier;
+    int costUpgradeTier;
+    int rangeUpgradeTier;
+
 public:
-    TransportationNetwork();
+    explicit TransportationNetwork(int networkId);
+
+    int getId() const;
 
     bool isBuilt() const;
     bool isUnderConstruction() const;
@@ -22,9 +35,16 @@ public:
     int getConstructionDaysRemaining() const;
 
     double getCapacityPerDay() const;
+    void setCapacityPerDay(double capacity);
     double getCostPerBarrel() const;
     double getRange() const;
+    void setRange(double range);
+
     double getConstructionCost() const;
+
+    int getCapacityUpgradeTier() const;
+    int getCostUpgradeTier() const;
+    int getRangeUpgradeTier() const;
 
     void startConstruction(
         int constructionDays,
@@ -35,6 +55,21 @@ public:
     );
 
     bool advanceConstruction();
+
+    bool upgradeCapacity(
+        double multiplier,
+        int tier
+    );
+
+    bool upgradeCostPerBarrel(
+        double multiplier,
+        int tier
+    );
+
+    bool upgradeRange(
+        double additionalRange,
+        int tier
+    );
 
     double transport(double availableOil);
 };

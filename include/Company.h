@@ -24,8 +24,11 @@ private:
     std::vector<std::unique_ptr<Reservoir>> reservoirs;
     std::vector<std::unique_ptr<Well>> wells;
 
-    TransportationNetwork transportation;
-    StorageFacility storage;
+    std::vector<std::unique_ptr<TransportationNetwork>>
+        transportationNetworks;
+
+    std::vector<std::unique_ptr<StorageFacility>>
+        storageFacilities;
 
     TechnologyTree technologies;
 
@@ -36,6 +39,8 @@ private:
 
     int nextReservoirId;
     int nextWellId;
+    int nextTransportationId;
+    int nextStorageId;
 
 public:
     Company();
@@ -51,11 +56,13 @@ public:
     const std::vector<std::unique_ptr<Well>>&
     getWells() const;
 
-    TransportationNetwork& getTransportation();
-    const TransportationNetwork& getTransportation() const;
+    const std::vector<
+        std::unique_ptr<TransportationNetwork>
+    >& getTransportationNetworks() const;
 
-    StorageFacility& getStorage();
-    const StorageFacility& getStorage() const;
+    const std::vector<
+        std::unique_ptr<StorageFacility>
+    >& getStorageFacilities() const;
 
     TechnologyTree& getTechnologyTree();
     const TechnologyTree& getTechnologyTree() const;
@@ -66,6 +73,21 @@ public:
     DrillingProject& getDrillingProject();
     const DrillingProject& getDrillingProject() const;
 
+    bool upgradeStorageCapacity(int storageId);
+    bool upgradeStorageCost(int storageId);
+
+    bool upgradeTransportationCapacity(
+        int transportationId
+    );
+
+    bool upgradeTransportationCost(
+        int transportationId
+    );
+
+    bool upgradeTransportationRange(
+        int transportationId
+    );
+    
     bool startExploration();
 
     void advanceExploration(double randomRoll);

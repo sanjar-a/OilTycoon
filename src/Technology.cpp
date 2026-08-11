@@ -9,7 +9,8 @@ TechnologyTree::TechnologyTree()
         {
             "exploration_cost_1",
             "Exploration Cost I",
-            TechnologyCategory::Exploration,
+            TechnologyDomain::Operational,
+            TechnologyCategory::Exploration,            
             TechnologyMetric::Cost,
             1,
             10000.0,
@@ -20,7 +21,8 @@ TechnologyTree::TechnologyTree()
         {
             "exploration_cost_2",
             "Exploration Cost II",
-            TechnologyCategory::Exploration,
+            TechnologyDomain::Operational,
+            TechnologyCategory::Exploration,            
             TechnologyMetric::Cost,
             2,
             25000.0,
@@ -31,7 +33,8 @@ TechnologyTree::TechnologyTree()
         {
             "exploration_time_1",
             "Exploration Time I",
-            TechnologyCategory::Exploration,
+            TechnologyDomain::Operational,
+            TechnologyCategory::Exploration,            
             TechnologyMetric::Time,
             1,
             10000.0,
@@ -42,6 +45,7 @@ TechnologyTree::TechnologyTree()
         {
             "exploration_accuracy_1",
             "Exploration Accuracy I",
+            TechnologyDomain::Operational,
             TechnologyCategory::Exploration,
             TechnologyMetric::Accuracy,
             1,
@@ -54,6 +58,7 @@ TechnologyTree::TechnologyTree()
         {
             "drilling_cost_1",
             "Drilling Cost I",
+            TechnologyDomain::Operational,
             TechnologyCategory::Drilling,
             TechnologyMetric::Cost,
             1,
@@ -65,6 +70,7 @@ TechnologyTree::TechnologyTree()
         {
             "drilling_time_1",
             "Drilling Time I",
+            TechnologyDomain::Operational,
             TechnologyCategory::Drilling,
             TechnologyMetric::Time,
             1,
@@ -76,6 +82,7 @@ TechnologyTree::TechnologyTree()
         {
             "drilling_capability_1",
             "Well Capability I",
+            TechnologyDomain::Operational,
             TechnologyCategory::Drilling,
             TechnologyMetric::WellCapability,
             1,
@@ -87,6 +94,7 @@ TechnologyTree::TechnologyTree()
         {
             "drilling_depth_1",
             "Maximum Depth I",
+            TechnologyDomain::Operational,
             TechnologyCategory::Drilling,
             TechnologyMetric::MaximumDepth,
             1,
@@ -98,6 +106,7 @@ TechnologyTree::TechnologyTree()
         {
             "drilling_depth_2",
             "Maximum Depth II",
+            TechnologyDomain::Operational,
             TechnologyCategory::Drilling,
             TechnologyMetric::MaximumDepth,
             2,
@@ -110,6 +119,7 @@ TechnologyTree::TechnologyTree()
         {
             "maintenance_degradation_1",
             "Maintenance Reliability I",
+            TechnologyDomain::Operational,
             TechnologyCategory::Maintenance,
             TechnologyMetric::DegradationRate,
             1,
@@ -121,6 +131,7 @@ TechnologyTree::TechnologyTree()
         {
             "maintenance_repair_1",
             "Repair Time I",
+            TechnologyDomain::Operational,
             TechnologyCategory::Maintenance,
             TechnologyMetric::RepairTime,
             1,
@@ -132,6 +143,7 @@ TechnologyTree::TechnologyTree()
         {
             "maintenance_parts_1",
             "Spare Parts I",
+            TechnologyDomain::Operational,
             TechnologyCategory::Maintenance,
             TechnologyMetric::SparePartsConsumption,
             1,
@@ -144,6 +156,7 @@ TechnologyTree::TechnologyTree()
         {
             "transport_capacity_1",
             "Transportation Capacity I",
+            TechnologyDomain::Infrastructure,
             TechnologyCategory::Transportation,
             TechnologyMetric::Capacity,
             1,
@@ -155,6 +168,7 @@ TechnologyTree::TechnologyTree()
         {
             "transport_cost_1",
             "Transportation Cost I",
+            TechnologyDomain::Infrastructure,
             TechnologyCategory::Transportation,
             TechnologyMetric::CostPerBarrel,
             1,
@@ -166,6 +180,7 @@ TechnologyTree::TechnologyTree()
         {
             "transport_range_1",
             "Transportation Range I",
+            TechnologyDomain::Infrastructure,
             TechnologyCategory::Transportation,
             TechnologyMetric::Range,
             1,
@@ -178,6 +193,7 @@ TechnologyTree::TechnologyTree()
         {
             "storage_capacity_1",
             "Storage Capacity I",
+            TechnologyDomain::Infrastructure,
             TechnologyCategory::Storage,
             TechnologyMetric::Capacity,
             1,
@@ -189,6 +205,7 @@ TechnologyTree::TechnologyTree()
         {
             "storage_cost_1",
             "Storage Cost I",
+            TechnologyDomain::Infrastructure,
             TechnologyCategory::Storage,
             TechnologyMetric::CostPerBarrel,
             1,
@@ -316,4 +333,44 @@ int TechnologyTree::getHighestTier(
     }
 
     return highestTier;
+}
+
+double TechnologyTree::getEffectAtTier(
+    TechnologyCategory category,
+    TechnologyMetric metric,
+    int tier
+) const
+{
+    for (const Technology& technology : technologies)
+    {
+        if (technology.category == category &&
+            technology.metric == metric &&
+            technology.tier == tier)
+        {
+            return technology.effect;
+        }
+    }
+
+    return 1.0;
+}
+
+bool TechnologyTree::isInfrastructureTechnologyUnlocked(
+    TechnologyCategory category,
+    TechnologyMetric metric,
+    int tier
+) const
+{
+    for (const Technology& technology : technologies)
+    {
+        if (technology.domain ==
+                TechnologyDomain::Infrastructure &&
+            technology.category == category &&
+            technology.metric == metric &&
+            technology.tier == tier)
+        {
+            return technology.unlocked;
+        }
+    }
+
+    return false;
 }

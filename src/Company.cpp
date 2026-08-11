@@ -10,14 +10,16 @@ Company::Company()
       maintenancePolicy(MaintenancePolicy::Manual),
       reservoirs(),
       wells(),
-      transportation(),
-      storage(),
+      transportationNetworks(),
+      storageFacilities(),      
       technologies(),
       explorationProject(),
       drillingProject(),
       hasCommercialDiscovery(false),
       nextReservoirId(1),
-      nextWellId(1)
+      nextWellId(1),
+      nextTransportationId(1),
+      nextStorageId(1)
 {
 }
 
@@ -36,6 +38,20 @@ MaintenancePolicy Company::getMaintenancePolicy() const
     return maintenancePolicy;
 }
 
+const std::vector<
+    std::unique_ptr<TransportationNetwork>
+>& Company::getTransportationNetworks() const
+{
+    return transportationNetworks;
+}
+
+const std::vector<
+    std::unique_ptr<StorageFacility>
+>& Company::getStorageFacilities() const
+{
+    return storageFacilities;
+}
+
 const std::vector<std::unique_ptr<Reservoir>>&
 Company::getReservoirs() const
 {
@@ -48,25 +64,6 @@ Company::getWells() const
     return wells;
 }
 
-TransportationNetwork& Company::getTransportation()
-{
-    return transportation;
-}
-
-const TransportationNetwork& Company::getTransportation() const
-{
-    return transportation;
-}
-
-StorageFacility& Company::getStorage()
-{
-    return storage;
-}
-
-const StorageFacility& Company::getStorage() const
-{
-    return storage;
-}
 
 TechnologyTree& Company::getTechnologyTree()
 {
@@ -339,29 +336,11 @@ void Company::advanceDrilling()
 
 bool Company::buildTransportation()
 {
-    if (transportation.isBuilt() ||
-        transportation.isUnderConstruction())
-    {
-        return false;
-    }
+    const double capacityMultiplier = 1.0;
 
-    const double capacityMultiplier =
-        technologies.getEffect(
-            TechnologyCategory::Transportation,
-            TechnologyMetric::Capacity
-        );
+    const double costMultiplier = 1.0;
 
-    const double costMultiplier =
-        technologies.getEffect(
-            TechnologyCategory::Transportation,
-            TechnologyMetric::CostPerBarrel
-        );
-
-    const double range =
-        technologies.getEffect(
-            TechnologyCategory::Transportation,
-            TechnologyMetric::Range
-        );
+    const double range = 100.0;
 
     const double capacity =
         1000.0 * capacityMultiplier;
@@ -376,7 +355,12 @@ bool Company::buildTransportation()
 
     money -= cost;
 
-    transportation.startConstruction(
+    auto network =
+        std::make_unique<TransportationNetwork>(
+            nextTransportationId
+        );
+
+    network->startConstruction(
         constructionTime,
         cost,
         capacity,
@@ -384,34 +368,25 @@ bool Company::buildTransportation()
         range
     );
 
+    transportationNetworks.push_back(
+        std::move(network)
+    );
+
+    ++nextTransportationId;
+
     return true;
 }
 
 bool Company::buildStorage()
 {
-    if (storage.isBuilt() ||
-        storage.isUnderConstruction())
-    {
-        return false;
-    }
-
-    const double capacityMultiplier =
-        technologies.getEffect(
-            TechnologyCategory::Storage,
-            TechnologyMetric::Capacity
-        );
-
-    const double costMultiplier =
-        technologies.getEffect(
-            TechnologyCategory::Storage,
-            TechnologyMetric::CostPerBarrel
-        );
-
     const double capacity =
-        100000.0 * capacityMultiplier;
+        100000.0;
 
     const double cost = 50000.0;
     const int constructionTime = 5;
+
+    const double costPerBarrel =
+        0.50;
 
     if (money < cost)
     {
@@ -420,20 +395,40 @@ bool Company::buildStorage()
 
     money -= cost;
 
-    storage.startConstruction(
+    auto facility =
+        std::make_unique<StorageFacility>(
+            nextStorageId
+        );
+
+    facility->startConstruction(
         constructionTime,
         cost,
         capacity,
-        0.50 * costMultiplier
+        costPerBarrel
     );
+
+    storageFacilities.push_back(
+        std::move(facility)
+    );
+
+    ++nextStorageId;
 
     return true;
 }
 
 void Company::advanceConstruction()
 {
-    transportation.advanceConstruction();
-    storage.advanceConstruction();
+    for (auto& network :
+         transportationNetworks)
+    {
+        network->advanceConstruction();
+    }
+
+    for (auto& storage :
+         storageFacilities)
+    {
+        storage->advanceConstruction();
+    }
 }
 
 void Company::processMaintenance()
@@ -536,24 +531,70 @@ double Company::processTransportation(
     double producedOil
 )
 {
-    if (!transportation.isBuilt())
+    if (producedOil <= 0.0)
     {
         return 0.0;
     }
 
-    return transportation.transport(producedOil);
+    double remainingOil = producedOil;
+    double transportedOil = 0.0;
+
+    for (const auto& network :
+         transportationNetworks)
+    {
+        if (!network->isBuilt())
+        {
+            continue;
+        }
+
+        const double transported =
+            network->transport(remainingOil);
+
+        transportedOil += transported;
+        remainingOil -= transported;
+
+        if (remainingOil <= 0.0)
+        {
+            break;
+        }
+    }
+
+    return transportedOil;
 }
 
 double Company::processStorage(
     double transportedOil
 )
 {
-    if (!storage.isBuilt())
+    if (transportedOil <= 0.0)
     {
         return 0.0;
     }
 
-    return storage.addOil(transportedOil);
+    double remainingOil = transportedOil;
+    double storedOil = 0.0;
+
+    for (const auto& storage :
+         storageFacilities)
+    {
+        if (!storage->isBuilt())
+        {
+            continue;
+        }
+
+        const double accepted =
+            storage->addOil(remainingOil);
+
+        storedOil += accepted;
+        remainingOil -= accepted;
+
+        if (remainingOil <= 0.0)
+        {
+            break;
+        }
+    }
+
+    return storedOil;
 }
 
 bool Company::repairWell(int wellId)
@@ -668,18 +709,37 @@ bool Company::sellOil(
         return false;
     }
 
-    const double sold =
-        storage.sellOil(barrels);
+    double remaining =
+        barrels;
+
+    double sold = 0.0;
+
+    for (const auto& storage :
+         storageFacilities)
+    {
+        if (!storage->isBuilt())
+        {
+            continue;
+        }
+
+        const double amount =
+            storage->sellOil(remaining);
+
+        sold += amount;
+        remaining -= amount;
+
+        if (remaining <= 0.0)
+        {
+            break;
+        }
+    }
 
     if (sold <= 0.0)
     {
         return false;
     }
 
-    const double revenue =
-        sold * oilPrice;
-
-    money += revenue;
+    money += sold * oilPrice;
 
     return true;
 }
@@ -825,4 +885,208 @@ void Company::printTechnologies() const
 
         std::cout << '\n';
     }
+}
+
+bool Company::upgradeStorageCapacity(
+    int storageId
+)
+{
+    const int tier =
+        technologies.getHighestTier(
+            TechnologyCategory::Storage,
+            TechnologyMetric::Capacity
+        );
+
+    if (tier <= 0)
+    {
+        return false;
+    }
+
+    if (!technologies.isInfrastructureTechnologyUnlocked(
+            TechnologyCategory::Storage,
+            TechnologyMetric::Capacity,
+            tier
+        ))
+    {
+        return false;
+    }
+
+    const double multiplier =
+        technologies.getEffectAtTier(
+            TechnologyCategory::Storage,
+            TechnologyMetric::Capacity,
+            tier
+        );
+
+    for (auto& storage :
+         storageFacilities)
+    {
+        if (storage->getId() != storageId)
+        {
+            continue;
+        }
+
+        return storage->upgradeCapacity(
+            multiplier,
+            tier
+        );
+    }
+
+    return false;
+}
+
+bool Company::upgradeStorageCost(
+    int storageId
+)
+{
+    const int tier =
+        technologies.getHighestTier(
+            TechnologyCategory::Storage,
+            TechnologyMetric::CostPerBarrel
+        );
+
+    if (tier <= 0)
+    {
+        return false;
+    }
+
+    const double multiplier =
+        technologies.getEffectAtTier(
+            TechnologyCategory::Storage,
+            TechnologyMetric::CostPerBarrel,
+            tier
+        );
+
+    for (auto& storage :
+         storageFacilities)
+    {
+        if (storage->getId() != storageId)
+        {
+            continue;
+        }
+
+        return storage->upgradeCostPerBarrel(
+            multiplier,
+            tier
+        );
+    }
+
+    return false;
+}
+
+bool Company::upgradeTransportationCapacity(
+    int transportationId
+)
+{
+    const int tier =
+        technologies.getHighestTier(
+            TechnologyCategory::Transportation,
+            TechnologyMetric::Capacity
+        );
+
+    if (tier <= 0)
+    {
+        return false;
+    }
+
+    const double multiplier =
+        technologies.getEffectAtTier(
+            TechnologyCategory::Transportation,
+            TechnologyMetric::Capacity,
+            tier
+        );
+
+    for (auto& network :
+         transportationNetworks)
+    {
+        if (network->getId() != transportationId)
+        {
+            continue;
+        }
+
+        return network->upgradeCapacity(
+            multiplier,
+            tier
+        );
+    }
+
+    return false;
+}
+
+bool Company::upgradeTransportationCost(
+    int transportationId
+)
+{
+    const int tier =
+        technologies.getHighestTier(
+            TechnologyCategory::Transportation,
+            TechnologyMetric::CostPerBarrel
+        );
+
+    if (tier <= 0)
+    {
+        return false;
+    }
+
+    const double multiplier =
+        technologies.getEffectAtTier(
+            TechnologyCategory::Transportation,
+            TechnologyMetric::CostPerBarrel,
+            tier
+        );
+
+    for (auto& network :
+         transportationNetworks)
+    {
+        if (network->getId() != transportationId)
+        {
+            continue;
+        }
+
+        return network->upgradeCostPerBarrel(
+            multiplier,
+            tier
+        );
+    }
+
+    return false;
+}
+
+bool Company::upgradeTransportationRange(
+    int transportationId
+)
+{
+    const int tier =
+        technologies.getHighestTier(
+            TechnologyCategory::Transportation,
+            TechnologyMetric::Range
+        );
+
+    if (tier <= 0)
+    {
+        return false;
+    }
+
+    const double additionalRange =
+        technologies.getEffectAtTier(
+            TechnologyCategory::Transportation,
+            TechnologyMetric::Range,
+            tier
+        );
+
+    for (auto& network :
+         transportationNetworks)
+    {
+        if (network->getId() != transportationId)
+        {
+            continue;
+        }
+
+        return network->upgradeRange(
+            additionalRange,
+            tier
+        );
+    }
+
+    return false;
 }
