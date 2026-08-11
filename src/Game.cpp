@@ -1129,21 +1129,33 @@ void Game::upgradeTransportationCapacity()
         *networks[choice - 1];
 
     const double currentCapacity =
-        network.getCapacityPerDay();
+    network.getCapacityPerDay();
 
-    const double newCapacity =
-        currentCapacity * 1.25;
+    const int newTier =
+        network.getCapacityUpgradeTier() + 1;
 
-    network.setCapacityPerDay(newCapacity);
-
-    std::cout
-        << "Transportation #"
-        << choice
-        << " capacity upgraded from "
-        << currentCapacity
-        << " to "
-        << newCapacity
-        << " bbl/day.\n";
+    if (network.upgradeCapacity(
+            1.25,
+            newTier
+        ))
+    {
+        std::cout
+            << "Transportation #"
+            << choice
+            << " capacity upgraded from "
+            << currentCapacity
+            << " to "
+            << network.getCapacityPerDay()
+            << " bbl/day.\n"
+            << "Capacity Tier: "
+            << network.getCapacityUpgradeTier()
+            << "\n";
+    }
+    else
+    {
+        std::cout
+            << "Transportation capacity upgrade failed.\n";
+    }
 }
 
 
