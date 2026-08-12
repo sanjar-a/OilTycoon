@@ -287,6 +287,8 @@ void Game::advanceDay()
     const double stored =
         company.processStorage(transported);
 
+    company.processStorageCosts();
+
     std::cout
         << std::fixed
         << std::setprecision(1)

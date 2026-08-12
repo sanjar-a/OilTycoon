@@ -112,6 +112,8 @@ public:
 
     double processStorage(double transportedOil);
 
+    void processStorageCosts();
+
     bool repairWell(int wellId);
 
     bool setMaintenancePolicy(MaintenancePolicy policy);

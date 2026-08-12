@@ -364,7 +364,7 @@ bool Company::buildTransportation()
         constructionTime,
         cost,
         capacity,
-        2.0 * costMultiplier,
+        0.5 * costMultiplier, //0.5$ per barrel transportation cost
         range
     );
 
@@ -386,7 +386,7 @@ bool Company::buildStorage()
     const int constructionTime = 5;
 
     const double costPerBarrel =
-        0.50;
+        0.10;
 
     if (money < cost)
     {
@@ -601,6 +601,24 @@ double Company::processStorage(
     }
 
     return storedOil;
+}
+
+void Company::processStorageCosts()
+{
+    for (const auto& storage :
+         storageFacilities)
+    {
+        if (!storage->isBuilt())
+        {
+            continue;
+        }
+
+        const double storageCost =
+            storage->getInventory() *
+            storage->getCostPerBarrel();
+
+        money -= storageCost;
+    }
 }
 
 bool Company::repairWell(int wellId)
