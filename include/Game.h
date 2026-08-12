@@ -63,6 +63,8 @@ private:
     void showStorageFacilities() const;
     void showTransportationNetworks() const;
     void updateOilPrice();
+
+    void showFinancialStatus() const;
 };
 
 #endif

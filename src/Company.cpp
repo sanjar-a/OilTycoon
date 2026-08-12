@@ -6,6 +6,14 @@
 
 Company::Company()
     : money(250000.0),
+      dailyRevenue(0.0),
+      dailyDrillingExpenses(0.0),
+      dailyExplorationExpenses(0.0),
+      dailyConstructionExpenses(0.0),
+      dailyTechnologyExpenses(0.0),
+      dailyTransportationExpenses(0.0),
+      dailyStorageExpenses(0.0),
+      dailySparePartsExpenses(0.0),
       spareParts(100),
       maintenancePolicy(MaintenancePolicy::Manual),
       reservoirs(),
@@ -26,6 +34,77 @@ Company::Company()
 double Company::getMoney() const
 {
     return money;
+}
+
+double Company::getDailyRevenue() const
+{
+    return dailyRevenue;
+}
+
+double Company::getDailyDrillingExpenses() const
+{
+    return dailyDrillingExpenses;
+}
+
+double Company::getDailyExplorationExpenses() const
+{
+    return dailyExplorationExpenses;
+}
+
+double Company::getDailyConstructionExpenses() const
+{
+    return dailyConstructionExpenses;
+}
+
+double Company::getDailyTechnologyExpenses() const
+{
+    return dailyTechnologyExpenses;
+}
+
+double Company::getDailyTransportationExpenses() const
+{
+    return dailyTransportationExpenses;
+}
+
+double Company::getDailyStorageExpenses() const
+{
+    return dailyStorageExpenses;
+}
+
+double Company::getDailySparePartsExpenses() const
+{
+    return dailySparePartsExpenses;
+}
+
+double Company::getDailyTotalExpenses() const
+{
+    return
+        dailyDrillingExpenses +
+        dailyExplorationExpenses +
+        dailyConstructionExpenses +
+        dailyTechnologyExpenses +
+        dailyTransportationExpenses +
+        dailyStorageExpenses +
+        dailySparePartsExpenses;
+}
+
+double Company::getDailyProfit() const
+{
+    return
+        dailyRevenue -
+        getDailyTotalExpenses();
+}
+
+void Company::resetDailyFinancials()
+{
+    dailyRevenue = 0.0;
+    dailyDrillingExpenses = 0.0;
+    dailyExplorationExpenses = 0.0;
+    dailyConstructionExpenses = 0.0;
+    dailyTechnologyExpenses = 0.0;
+    dailyTransportationExpenses = 0.0;
+    dailyStorageExpenses = 0.0;
+    dailySparePartsExpenses = 0.0;
 }
 
 int Company::getSpareParts() const
@@ -149,6 +228,7 @@ bool Company::startExploration()
     }
 
     money -= cost;
+    dailyExplorationExpenses += cost;
 
     explorationProject.start(
         duration,
@@ -281,6 +361,7 @@ bool Company::startDrilling()
     }
 
     money -= cost;
+    dailyDrillingExpenses += cost;
 
     drillingProject.start(
         reservoir,
@@ -354,6 +435,7 @@ bool Company::buildTransportation()
     }
 
     money -= cost;
+    dailyConstructionExpenses += cost;
 
     auto network =
         std::make_unique<TransportationNetwork>(
@@ -394,6 +476,7 @@ bool Company::buildStorage()
     }
 
     money -= cost;
+    dailyConstructionExpenses += cost;
 
     auto facility =
         std::make_unique<StorageFacility>(
@@ -558,6 +641,7 @@ double Company::processTransportation(
             network->getCostPerBarrel();
 
         money -= transportationCost;
+        dailyTransportationExpenses += transportationCost;
 
         if (remainingOil <= 0.0)
         {
@@ -618,6 +702,7 @@ void Company::processStorageCosts()
             storage->getCostPerBarrel();
 
         money -= storageCost;
+        dailyStorageExpenses += storageCost;
     }
 }
 
@@ -763,7 +848,11 @@ bool Company::sellOil(
         return false;
     }
 
-    money += sold * oilPrice;
+    const double revenue =
+        sold * oilPrice;
+
+    money += revenue;
+    dailyRevenue += revenue;
 
     return true;
 }
@@ -787,6 +876,7 @@ bool Company::buySpareParts(
     }
 
     money -= totalCost;
+    dailySparePartsExpenses += totalCost;
     spareParts += amount;
 
     return true;
@@ -796,10 +886,21 @@ bool Company::unlockTechnology(
     const std::string& technologyId
 )
 {
-    return technologies.unlockTechnology(
-        technologyId,
-        money
-    );
+    const double moneyBefore = money;
+
+    const bool unlocked =
+        technologies.unlockTechnology(
+            technologyId,
+            money
+        );
+
+    if (unlocked)
+    {
+        dailyTechnologyExpenses +=
+            moneyBefore - money;
+    }
+
+    return unlocked;
 }
 
 bool Company::hasDiscovery() const

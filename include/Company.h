@@ -17,6 +17,14 @@ class Company
 {
 private:
     double money;
+    double dailyRevenue;
+    double dailyDrillingExpenses;
+    double dailyExplorationExpenses;
+    double dailyConstructionExpenses;
+    double dailyTechnologyExpenses;
+    double dailyTransportationExpenses;
+    double dailyStorageExpenses;
+    double dailySparePartsExpenses;
     int spareParts;
 
     MaintenancePolicy maintenancePolicy;
@@ -129,6 +137,21 @@ public:
     void printWells() const;
     void printReservoirs() const;
     void printTechnologies() const;
+    
+    double getDailyRevenue() const;
+
+    double getDailyDrillingExpenses() const;
+    double getDailyExplorationExpenses() const;
+    double getDailyConstructionExpenses() const;
+    double getDailyTechnologyExpenses() const;
+    double getDailyTransportationExpenses() const;
+    double getDailyStorageExpenses() const;
+    double getDailySparePartsExpenses() const;
+
+    double getDailyTotalExpenses() const;
+    double getDailyProfit() const;
+
+    void resetDailyFinancials();
 };
 
 #endif

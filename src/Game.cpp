@@ -77,11 +77,12 @@ void Game::displayMainMenu() const
         << "8. Sell oil\n"
         << "9. Buy Spare Parts\n"
         << "10. Show Status\n"
-        << "11. Show Wells\n"
-        << "12. Show Reservoirs\n"
-        << "13. Show Technologies\n"
-        << "14. Unlock Technology\n"
-        << "15. Manage Infrastructure\n"
+        << "11. Financial Status\n"
+        << "12. Show Wells\n"
+        << "13. Show Reservoirs\n"
+        << "14. Show Technologies\n"
+        << "15. Unlock Technology\n"
+        << "16. Manage Infrastructure\n"
         << "0. Exit\n";
 }
 
@@ -189,22 +190,26 @@ void Game::processCommand(int command)
         break;
 
     case 11:
-        showWells();
+        showFinancialStatus();
         break;
 
     case 12:
-        showReservoirs();
+        showWells();
         break;
 
     case 13:
-        showTechnologies();
+        showReservoirs();
         break;
 
     case 14:
-        unlockTechnology();
+        showTechnologies();
         break;
 
     case 15:
+        unlockTechnology();
+        break;
+
+    case 16:
         manageInfrastructure();
         break;
 
@@ -221,6 +226,7 @@ void Game::processCommand(int command)
 
 void Game::advanceDay()
 {
+    company.resetDailyFinancials();
     std::cout
         << "\n========== ADVANCING DAY "
         << currentDay
@@ -1369,4 +1375,60 @@ void Game::updateOilPrice()
     {
         oilPricePerBarrel = MAX_OIL_PRICE;
     }
+}
+
+void Game::showFinancialStatus() const
+{
+    const double revenue =
+        company.getDailyRevenue();
+
+    const double drilling =
+        company.getDailyDrillingExpenses();
+
+    const double exploration =
+        company.getDailyExplorationExpenses();
+
+    const double construction =
+        company.getDailyConstructionExpenses();
+
+    const double technology =
+        company.getDailyTechnologyExpenses();
+
+    const double transportation =
+        company.getDailyTransportationExpenses();
+
+    const double storage =
+        company.getDailyStorageExpenses();
+
+    const double spareParts =
+        company.getDailySparePartsExpenses();
+
+    const double totalExpenses =
+        company.getDailyTotalExpenses();
+
+    const double profit =
+        company.getDailyProfit();
+
+    std::cout
+        << "\n========== FINANCIAL STATUS ==========\n"
+        << std::fixed
+        << std::setprecision(2)
+
+        << "Revenue\n"
+        << "  Oil Sales:          $" << revenue << "\n\n"
+
+        << "Expenses\n"
+        << "  Exploration:        $" << exploration << "\n"
+        << "  Drilling:           $" << drilling << "\n"
+        << "  Construction:       $" << construction << "\n"
+        << "  Technology:         $" << technology << "\n"
+        << "  Transportation:     $" << transportation << "\n"
+        << "  Storage:             $" << storage << "\n"
+        << "  Spare Parts:        $" << spareParts << "\n"
+        << "  -------------------------------\n"
+        << "  Total Expenses:     $" << totalExpenses << "\n\n"
+
+        << "Net Profit/Loss:       $" << profit << "\n"
+        << "Current Cash:          $" << company.getMoney()
+        << "\n";
 }
