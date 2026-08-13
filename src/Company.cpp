@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
+#include <random>
 
 Company::Company()
     : money(250000.0),
@@ -265,10 +266,32 @@ void Company::advanceExploration(double randomRoll)
         const double pressure = 250.0;
         const double depth = 2800.0;
 
+        // Generate a random field location.
+        // The company HQ / city is assumed to be at (0, 0).
+        // Commercial discoveries currently occur within
+        // 30-70 km on both X and Y axes.
+
+        static std::random_device randomDevice;
+        static std::mt19937 generator(randomDevice());
+
+        std::uniform_real_distribution<double> coordinateDistribution(
+            30.0,
+            70.0
+        );
+
+        const double fieldX = coordinateDistribution(generator);
+        const double fieldY = coordinateDistribution(generator);
+
+        const Location fieldLocation(
+            fieldX,
+            fieldY
+        );
+
         reservoirs.push_back(
             std::make_unique<Reservoir>(
                 nextReservoirId,
                 "Field " + std::to_string(nextReservoirId),
+                fieldLocation,
                 reserves,
                 pressure,
                 depth

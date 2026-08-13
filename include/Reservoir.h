@@ -1,6 +1,8 @@
 #ifndef OILTYCOON_RESERVOIR_H
 #define OILTYCOON_RESERVOIR_H
 
+#include "Location.h"
+
 #include <string>
 
 class Reservoir
@@ -8,6 +10,8 @@ class Reservoir
 private:
     int id;
     std::string name;
+
+    Location location;
 
     double initialReserves;
     double remainingReserves;
@@ -21,6 +25,7 @@ public:
     Reservoir(
         int id,
         const std::string& name,
+        const Location& location,
         double initialReserves,
         double initialPressure,
         double depth
@@ -28,6 +33,7 @@ public:
 
     int getId() const;
     const std::string& getName() const;
+    const Location& getLocation() const;
 
     double getInitialReserves() const;
     double getRemainingReserves() const;

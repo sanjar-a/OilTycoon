@@ -12,6 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(OilTycoon
     src/main.cpp
     src/Types.cpp
+    src/Location.cpp
     src/Reservoir.cpp
     src/Well.cpp
     src/ExplorationProject.cpp

@@ -5,12 +5,14 @@
 Reservoir::Reservoir(
     int id,
     const std::string& name,
+    const Location& location,
     double initialReserves,
     double initialPressure,
     double depth
 )
     : id(id),
       name(name),
+      location(location),
       initialReserves(initialReserves),
       remainingReserves(initialReserves),
       initialPressure(initialPressure),
@@ -27,6 +29,11 @@ int Reservoir::getId() const
 const std::string& Reservoir::getName() const
 {
     return name;
+}
+
+const Location& Reservoir::getLocation() const
+{
+    return location;
 }
 
 double Reservoir::getInitialReserves() const
