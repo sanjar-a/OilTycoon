@@ -1,5 +1,7 @@
 #include "Location.h"
 
+#include <cmath>
+
 Location::Location()
     : x(0.0),
       y(0.0)
@@ -20,4 +22,15 @@ double Location::getX() const
 double Location::getY() const
 {
     return y;
+}
+
+double Location::distanceTo(const Location& other) const
+{
+    const double deltaX = x - other.x;
+    const double deltaY = y - other.y;
+
+    return std::sqrt(
+        deltaX * deltaX +
+        deltaY * deltaY
+    );
 }

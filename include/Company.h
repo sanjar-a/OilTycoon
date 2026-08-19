@@ -3,6 +3,7 @@
 
 #include "DrillingProject.h"
 #include "ExplorationProject.h"
+#include "Location.h"
 #include "Reservoir.h"
 #include "StorageFacility.h"
 #include "Technology.h"
@@ -16,6 +17,7 @@
 class Company
 {
 private:
+    Location headquartersLocation;
     double money;
     double dailyRevenue;
     double dailyDrillingExpenses;
@@ -52,6 +54,7 @@ private:
 
 public:
     Company();
+    const Location& getHeadquartersLocation() const;
 
     double getMoney() const;
     int getSpareParts() const;

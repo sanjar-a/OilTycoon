@@ -6,7 +6,8 @@
 #include <random>
 
 Company::Company()
-    : money(250000.0),
+    : headquartersLocation(0.0, 0.0),
+      money(250000.0),
       dailyRevenue(0.0),
       dailyDrillingExpenses(0.0),
       dailyExplorationExpenses(0.0),
@@ -30,6 +31,11 @@ Company::Company()
       nextTransportationId(1),
       nextStorageId(1)
 {
+}
+
+const Location& Company::getHeadquartersLocation() const
+{
+    return headquartersLocation;
 }
 
 double Company::getMoney() const
@@ -967,31 +973,68 @@ void Company::printWells() const
 
 void Company::printReservoirs() const
 {
-    std::cout << "\n======= RESERVOIRS ========\n";
-
     if (reservoirs.empty())
     {
-        std::cout << "No commercial discoveries.\n";
+        std::cout << "\nNo reservoirs discovered.\n";
         return;
     }
 
+    std::cout << "\n=== Reservoirs ===\n";
+
     for (const auto& reservoir : reservoirs)
     {
+        const Location& location =
+            reservoir->getLocation();
+
+        const double distanceFromHQ =
+            headquartersLocation.distanceTo(location);
+
         std::cout
-            << reservoir->getName()
-            << " | Reserves: "
+            << "\nField "
+            << reservoir->getId()
+            << "\n";
+
+        std::cout
+            << "  Location: X="
             << std::fixed
-            << std::setprecision(0)
-            << reservoir->getRemainingReserves()
-            << " bbl"
-            << " | Pressure: "
             << std::setprecision(1)
+            << location.getX()
+            << " km, Y="
+            << location.getY()
+            << " km\n";
+
+        std::cout
+            << "  Distance from HQ: "
+            << distanceFromHQ
+            << " km\n";
+
+        std::cout
+            << "  Initial reserves: "
+            << reservoir->getInitialReserves()
+            << " bbl\n";
+
+        std::cout
+            << "  Remaining reserves: "
+            << reservoir->getRemainingReserves()
+            << " bbl\n";
+
+        std::cout
+            << "  Initial pressure: "
+            << reservoir->getInitialPressure()
+            << " bar\n";
+
+        std::cout
+            << "  Current pressure: "
             << reservoir->getCurrentPressure()
-            << " bar"
-            << " | Depth: "
+            << " bar\n";
+
+        std::cout
+            << "  Depth: "
             << reservoir->getDepth()
             << " m\n";
     }
+
+    std::cout << std::defaultfloat;
 }
 
 void Company::printTechnologies() const

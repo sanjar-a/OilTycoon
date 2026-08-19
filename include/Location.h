@@ -13,6 +13,8 @@ public:
 
     double getX() const;
     double getY() const;
+
+    double distanceTo(const Location& other) const;
 };
 
 #endif
