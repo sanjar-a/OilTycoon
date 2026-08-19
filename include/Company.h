@@ -103,7 +103,7 @@ public:
 
     void advanceExploration(double randomRoll);
 
-    bool startDrilling();
+    bool startDrilling(int reservoirId);
 
     void advanceDrilling();
 

@@ -356,10 +356,65 @@ void Game::startExploration()
 
 void Game::startDrilling()
 {
-    if (company.startDrilling())
+    const auto& reservoirs =
+        company.getReservoirs();
+
+    if (reservoirs.empty())
     {
         std::cout
-            << "Drilling started.\n"
+            << "No commercial discoveries available.\n";
+        return;
+    }
+
+    std::cout
+        << "\n========== SELECT FIELD TO DRILL ==========\n";
+
+    for (const auto& reservoir : reservoirs)
+    {
+        const Location& location =
+            reservoir->getLocation();
+
+        const double distanceFromHQ =
+            company.getHeadquartersLocation()
+                .distanceTo(location);
+
+        std::cout
+            << "\nField "
+            << reservoir->getId()
+            << "\n"
+            << "  Location: X="
+            << std::fixed
+            << std::setprecision(1)
+            << location.getX()
+            << " km, Y="
+            << location.getY()
+            << " km\n"
+            << "  Distance from HQ: "
+            << distanceFromHQ
+            << " km\n"
+            << "  Reserves: "
+            << reservoir->getRemainingReserves()
+            << " bbl\n"
+            << "  Pressure: "
+            << reservoir->getCurrentPressure()
+            << " bar\n"
+            << "  Depth: "
+            << reservoir->getDepth()
+            << " m\n";
+    }
+
+    std::cout
+        << "\nEnter Field ID to drill: ";
+
+    int reservoirId = 0;
+    std::cin >> reservoirId;
+
+    if (company.startDrilling(reservoirId))
+    {
+        std::cout
+            << "Drilling started for Field "
+            << reservoirId
+            << ".\n"
             << "Duration: "
             << company.getDrillingProject()
                    .getDaysRemaining()
@@ -376,9 +431,11 @@ void Game::startDrilling()
     else
     {
         std::cout
-            << "Cannot start drilling.\n"
-            << "Check that you have a commercial discovery,\n"
-            << "sufficient money, and enough drilling depth.\n";
+            << "Cannot start drilling for Field "
+            << reservoirId
+            << ".\n"
+            << "Check that the field exists, you have sufficient money,\n"
+            << "and your drilling technology supports its depth.\n";
     }
 }
 

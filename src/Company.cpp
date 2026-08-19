@@ -190,11 +190,6 @@ bool Company::startExploration()
         return false;
     }
 
-    if (hasCommercialDiscovery)
-    {
-        return false;
-    }
-
     const double costMultiplier =
         technologies.getEffect(
             TechnologyCategory::Exploration,
@@ -309,7 +304,7 @@ void Company::advanceExploration(double randomRoll)
     }
 }
 
-bool Company::startDrilling()
+bool Company::startDrilling(int reservoirId)
 {
     if (!hasCommercialDiscovery)
     {
@@ -326,7 +321,21 @@ bool Company::startDrilling()
         return false;
     }
 
-    Reservoir* reservoir = reservoirs.back().get();
+    Reservoir* reservoir = nullptr;
+
+    for (const auto& candidate : reservoirs)
+    {
+        if (candidate->getId() == reservoirId)
+        {
+            reservoir = candidate.get();
+            break;
+        }
+    }
+
+    if (reservoir == nullptr)
+    {
+        return false;
+    }
 
     const double maximumDepth =
         technologies.getEffect(
@@ -361,7 +370,6 @@ bool Company::startDrilling()
     const int baseTime = 10;
     const double baseCapability = 300.0;
 
-    // Depth contributes to drilling difficulty.
     const double depthFactor =
         1.0 + (reservoir->getDepth() / 10000.0);
 
