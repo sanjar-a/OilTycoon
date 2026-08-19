@@ -7,7 +7,7 @@
 
 Company::Company()
     : headquartersLocation(0.0, 0.0),
-      money(250000.0),
+      money(400000.0),
       dailyRevenue(0.0),
       dailyDrillingExpenses(0.0),
       dailyExplorationExpenses(0.0),
