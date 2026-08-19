@@ -107,7 +107,7 @@ public:
 
     void advanceDrilling();
 
-    bool buildTransportation();
+    bool buildTransportation(int reservoirId);
 
     bool buildStorage();
 

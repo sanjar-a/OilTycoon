@@ -3,9 +3,11 @@
 #include <algorithm>
 
 TransportationNetwork::TransportationNetwork(
-    int networkId
+    int networkId,
+    int reservoirId
 )
     : id(networkId),
+      reservoirId(reservoirId),
       built(false),
       constructionDaysRemaining(0),
       baseCapacityPerDay(0.0),
@@ -24,6 +26,11 @@ TransportationNetwork::TransportationNetwork(
 int TransportationNetwork::getId() const
 {
     return id;
+}
+
+int TransportationNetwork::getReservoirId() const
+{
+    return reservoirId;
 }
 
 int TransportationNetwork::getCapacityUpgradeTier() const

@@ -452,10 +452,30 @@ void Company::advanceDrilling()
     drillingProject.reset();
 }
 
-bool Company::buildTransportation()
+bool Company::buildTransportation(int reservoirId)
 {
-    const double capacityMultiplier = 1.0;
+    if (reservoirs.empty())
+    {
+        return false;
+    }
 
+    Reservoir* reservoir = nullptr;
+
+    for (const auto& candidate : reservoirs)
+    {
+        if (candidate->getId() == reservoirId)
+        {
+            reservoir = candidate.get();
+            break;
+        }
+    }
+
+    if (reservoir == nullptr)
+    {
+        return false;
+    }
+
+    const double capacityMultiplier = 1.0;
     const double costMultiplier = 1.0;
 
     const double range = 100.0;
@@ -463,8 +483,21 @@ bool Company::buildTransportation()
     const double capacity =
         1000.0 * capacityMultiplier;
 
-    const double cost = 40000.0;
+    const double baseConstructionCost = 40000.0;
+    const double costPerKm = 500.0;
+
     const int constructionTime = 5;
+
+    const double distance =
+        headquartersLocation.distanceTo(
+            reservoir->getLocation()
+        );
+
+    const double cost =
+        (
+            baseConstructionCost +
+            distance * costPerKm
+        ) * costMultiplier;
 
     if (money < cost)
     {
@@ -476,14 +509,15 @@ bool Company::buildTransportation()
 
     auto network =
         std::make_unique<TransportationNetwork>(
-            nextTransportationId
+            nextTransportationId,
+            reservoirId
         );
 
     network->startConstruction(
         constructionTime,
         cost,
         capacity,
-        0.5 * costMultiplier, //0.5$ per barrel transportation cost
+        0.5,
         range
     );
 

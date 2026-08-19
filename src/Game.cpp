@@ -441,7 +441,58 @@ void Game::startDrilling()
 
 void Game::buildTransportation()
 {
-    if (company.buildTransportation())
+    const auto& reservoirs =
+        company.getReservoirs();
+
+    if (reservoirs.empty())
+    {
+        std::cout
+            << "No fields available for transportation.\n";
+        return;
+    }
+
+    std::cout
+        << "\n========== BUILD TRANSPORTATION ==========\n";
+
+    for (const auto& reservoir : reservoirs)
+    {
+        const Location& location =
+            reservoir->getLocation();
+
+        const double distanceFromHQ =
+            company.getHeadquartersLocation()
+                .distanceTo(location);
+
+        const double estimatedCost =
+            40000.0 +
+            distanceFromHQ * 500.0;
+
+        std::cout
+            << "\nField "
+            << reservoir->getId()
+            << "\n"
+            << "  Location: X="
+            << std::fixed
+            << std::setprecision(1)
+            << location.getX()
+            << " km, Y="
+            << location.getY()
+            << " km\n"
+            << "  Distance from HQ: "
+            << distanceFromHQ
+            << " km\n"
+            << "  Estimated construction cost: $"
+            << estimatedCost
+            << "\n";
+    }
+
+    std::cout
+        << "\nEnter Field ID: ";
+
+    int reservoirId = 0;
+    std::cin >> reservoirId;
+
+    if (company.buildTransportation(reservoirId))
     {
         std::cout
             << "Transportation network construction started.\n";
@@ -449,7 +500,10 @@ void Game::buildTransportation()
     else
     {
         std::cout
-            << "Cannot build transportation network.\n";
+            << "Cannot build transportation network for Field "
+            << reservoirId
+            << ".\n"
+            << "Check that the field exists and you have enough money.\n";
     }
 }
 

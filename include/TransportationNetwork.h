@@ -5,7 +5,7 @@ class TransportationNetwork
 {
 private:
     int id;
-
+    int reservoirId;
     bool built;
     int constructionDaysRemaining;
 
@@ -25,10 +25,13 @@ private:
     int rangeUpgradeTier;
 
 public:
-    explicit TransportationNetwork(int networkId);
+    TransportationNetwork(
+    int networkId,
+    int reservoirId
+    );
 
     int getId() const;
-
+    int getReservoirId() const;
     bool isBuilt() const;
     bool isUnderConstruction() const;
 
