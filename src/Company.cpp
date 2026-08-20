@@ -1146,6 +1146,114 @@ void Company::printReservoirs() const
     std::cout << std::defaultfloat;
 }
 
+void Company::printTransportationStatus() const
+{
+    std::cout
+        << "\n========== TRANSPORTATION STATUS ==========\n";
+
+    if (reservoirs.empty())
+    {
+        std::cout
+            << "No fields discovered.\n";
+        return;
+    }
+
+    for (const auto& reservoir : reservoirs)
+    {
+        const int reservoirId =
+            reservoir->getId();
+
+        double production = 0.0;
+
+        auto productionIt =
+            dailyFieldProduction.find(reservoirId);
+
+        if (productionIt !=
+            dailyFieldProduction.end())
+        {
+            production =
+                productionIt->second;
+        }
+
+        const double distance =
+            headquartersLocation.distanceTo(
+                reservoir->getLocation()
+            );
+
+        double availableCapacity = 0.0;
+
+        int eligibleNetworks = 0;
+
+        for (const auto& network :
+             transportationNetworks)
+        {
+            if (!network->isBuilt())
+            {
+                continue;
+            }
+
+            if (network->getReservoirId() !=
+                reservoirId)
+            {
+                continue;
+            }
+
+            if (distance > network->getRange())
+            {
+                continue;
+            }
+
+            availableCapacity +=
+                network->getCapacityPerDay();
+
+            ++eligibleNetworks;
+        }
+
+        std::cout
+            << "\nField "
+            << reservoirId
+            << "\n";
+
+        std::cout
+            << "  Production: "
+            << production
+            << " bbl/day\n";
+
+        std::cout
+            << "  Distance from HQ: "
+            << distance
+            << " km\n";
+
+        std::cout
+            << "  Reachable networks: "
+            << eligibleNetworks
+            << "\n";
+
+        std::cout
+            << "  Available transport capacity: "
+            << availableCapacity
+            << " bbl/day\n";
+
+        if (eligibleNetworks == 0)
+        {
+            std::cout
+                << "  Status: NO REACHABLE TRANSPORTATION\n";
+        }
+        else if (
+            production > availableCapacity
+        )
+        {
+            std::cout
+                << "  Status: TRANSPORT CAPACITY LIMITED\n";
+        }
+        else
+        {
+            std::cout
+                << "  Status: CONNECTED\n";
+        }
+    }
+}
+
 void Company::printTechnologies() const
 {
     std::cout << "\n======= TECHNOLOGIES ======\n";

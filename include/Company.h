@@ -143,6 +143,7 @@ public:
 
     void printWells() const;
     void printReservoirs() const;
+    void printTransportationStatus() const;
     void printTechnologies() const;
     
     double getDailyRevenue() const;

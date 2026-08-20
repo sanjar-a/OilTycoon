@@ -308,6 +308,8 @@ void Game::advanceDay()
         << stored
         << " bbl\n";
 
+    company.printTransportationStatus();
+
     if (produced > transported)
     {
         std::cout
