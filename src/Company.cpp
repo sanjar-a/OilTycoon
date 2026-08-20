@@ -701,6 +701,33 @@ double Company::processTransportation(
             continue;
         }
 
+        Reservoir* reservoir = nullptr;
+
+        for (const auto& candidate : reservoirs)
+        {
+            if (candidate->getId() ==
+                network->getReservoirId())
+            {
+                reservoir = candidate.get();
+                break;
+            }
+        }
+
+        if (reservoir == nullptr)
+        {
+            continue;
+        }
+
+        const double distance =
+            headquartersLocation.distanceTo(
+                reservoir->getLocation()
+            );
+
+        if (distance > network->getRange())
+        {
+            continue;
+        }
+
         const double transported =
             network->transport(remainingOil);
 
@@ -712,7 +739,8 @@ double Company::processTransportation(
             network->getCostPerBarrel();
 
         money -= transportationCost;
-        dailyTransportationExpenses += transportationCost;
+        dailyTransportationExpenses +=
+            transportationCost;
 
         if (remainingOil <= 0.0)
         {
