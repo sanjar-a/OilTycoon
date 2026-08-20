@@ -12,6 +12,7 @@
 #include "Well.h"
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 class Company
@@ -28,6 +29,9 @@ private:
     double dailyStorageExpenses;
     double dailySparePartsExpenses;
     int spareParts;
+
+    std::unordered_map<int, double>
+        dailyFieldProduction;
 
     MaintenancePolicy maintenancePolicy;
 

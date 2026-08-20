@@ -663,6 +663,8 @@ double Company::processProduction()
 {
     double totalProduction = 0.0;
 
+    dailyFieldProduction.clear();
+
     for (const auto& well : wells)
     {
         const double production =
@@ -673,7 +675,21 @@ double Company::processProduction()
             continue;
         }
 
-        well->getReservoir()->produce(production);
+        Reservoir* reservoir =
+            well->getReservoir();
+
+        if (reservoir == nullptr)
+        {
+            continue;
+        }
+
+        reservoir->produce(production);
+
+        const int reservoirId =
+            reservoir->getId();
+
+        dailyFieldProduction[reservoirId] +=
+            production;
 
         totalProduction += production;
     }
@@ -690,13 +706,18 @@ double Company::processTransportation(
         return 0.0;
     }
 
-    double remainingOil = producedOil;
-    double transportedOil = 0.0;
+    double totalTransportedOil = 0.0;
 
-    for (const auto& network :
-         transportationNetworks)
+    for (const auto& fieldProduction :
+         dailyFieldProduction)
     {
-        if (!network->isBuilt())
+        const int reservoirId =
+            fieldProduction.first;
+
+        double remainingOil =
+            fieldProduction.second;
+
+        if (remainingOil <= 0.0)
         {
             continue;
         }
@@ -706,7 +727,7 @@ double Company::processTransportation(
         for (const auto& candidate : reservoirs)
         {
             if (candidate->getId() ==
-                network->getReservoirId())
+                reservoirId)
             {
                 reservoir = candidate.get();
                 break;
@@ -723,32 +744,50 @@ double Company::processTransportation(
                 reservoir->getLocation()
             );
 
-        if (distance > network->getRange())
+        for (const auto& network :
+             transportationNetworks)
         {
-            continue;
-        }
+            if (!network->isBuilt())
+            {
+                continue;
+            }
 
-        const double transported =
-            network->transport(remainingOil);
+            if (network->getReservoirId() !=
+                reservoirId)
+            {
+                continue;
+            }
 
-        transportedOil += transported;
-        remainingOil -= transported;
+            if (distance > network->getRange())
+            {
+                continue;
+            }
 
-        const double transportationCost =
-            transported *
-            network->getCostPerBarrel();
+            const double transported =
+                network->transport(remainingOil);
 
-        money -= transportationCost;
-        dailyTransportationExpenses +=
-            transportationCost;
+            totalTransportedOil +=
+                transported;
 
-        if (remainingOil <= 0.0)
-        {
-            break;
+            remainingOil -= transported;
+
+            const double transportationCost =
+                transported *
+                network->getCostPerBarrel();
+
+            money -= transportationCost;
+
+            dailyTransportationExpenses +=
+                transportationCost;
+
+            if (remainingOil <= 0.0)
+            {
+                break;
+            }
         }
     }
 
-    return transportedOil;
+    return totalTransportedOil;
 }
 
 double Company::processStorage(
