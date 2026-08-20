@@ -1,10 +1,12 @@
 #ifndef OILTYCOON_STORAGEFACILITY_H
 #define OILTYCOON_STORAGEFACILITY_H
+#include "Location.h"
 
 class StorageFacility
 {
 private:
     int id;
+    Location location;
 
     bool built;
     int constructionDaysRemaining;
@@ -21,9 +23,13 @@ private:
     int costUpgradeTier;
 
 public:
-    explicit StorageFacility(int facilityId);
+    StorageFacility(
+        int facilityId,
+        const Location & location
+    );
 
     int getId() const;
+    const Location& getLocation() const;
 
     bool isBuilt() const;
     bool isUnderConstruction() const;

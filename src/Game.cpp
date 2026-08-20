@@ -992,6 +992,11 @@ void Game::showStorageFacilities() const
                 << " / "
                 << storage->getCapacity()
                 << " bbl"
+                << " | Location: X="
+                << storage->getLocation().getX()
+                << " km, Y="
+                << storage->getLocation().getY()
+                << " km"
                 << " | Capacity Tier: "
                 << storage->getCapacityUpgradeTier()
                 << " | Cost Tier: "

@@ -551,7 +551,8 @@ bool Company::buildStorage()
 
     auto facility =
         std::make_unique<StorageFacility>(
-            nextStorageId
+            nextStorageId,
+            headquartersLocation
         );
 
     facility->startConstruction(

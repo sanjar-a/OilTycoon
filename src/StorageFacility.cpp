@@ -2,8 +2,12 @@
 
 #include <algorithm>
 
-StorageFacility::StorageFacility(int facilityId)
+StorageFacility::StorageFacility(
+    int facilityId,
+    const Location & location
+)
     : id(facilityId),
+      location(location),
       built(false),
       constructionDaysRemaining(0),
       baseCapacity(0.0),
@@ -19,6 +23,11 @@ StorageFacility::StorageFacility(int facilityId)
 int StorageFacility::getId() const
 {
     return id;
+}
+
+const Location& StorageFacility::getLocation() const
+{
+    return location;
 }
 
 int StorageFacility::getCapacityUpgradeTier() const
