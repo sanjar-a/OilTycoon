@@ -4,7 +4,7 @@
 #include "Company.h"
 
 #include <random>
-
+#include <SDL3/SDL.h>
 class Game
 {
 private:
@@ -65,6 +65,16 @@ private:
     void updateOilPrice();
 
     void showFinancialStatus() const;
+
+private:
+    SDL_Window* window = nullptr;
+    SDL_Renderer* renderer = nullptr;
+
+    bool sdlInitialized = false;
+
+    bool initializeSDL();
+    void shutdownSDL();
+    void processSDLEvents();
 };
 
 #endif

@@ -9,6 +9,16 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+include(FetchContent)
+
+FetchContent_Declare(
+    SDL3
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG release-3.2.0
+)
+
+FetchContent_MakeAvailable(SDL3)
+
 add_executable(OilTycoon
     src/main.cpp
     src/Types.cpp
@@ -24,9 +34,22 @@ add_executable(OilTycoon
     src/Game.cpp
 )
 
+
 target_include_directories(OilTycoon
     PRIVATE
         ${PROJECT_SOURCE_DIR}/include
+)
+
+target_link_libraries(OilTycoon
+    PRIVATE
+        SDL3::SDL3
+)
+
+add_custom_command(
+    TARGET OilTycoon POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:SDL3::SDL3>
+        $<TARGET_FILE_DIR:OilTycoon>
 )
 
 if (MSVC)

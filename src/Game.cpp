@@ -26,8 +26,15 @@ void Game::run()
         << "Build your oil company from exploration\n"
         << "to production and sales.\n\n";
 
+    if (!initializeSDL())
+    {
+        return;
+    }
+
     while (running)
     {
+        processSDLEvents();
+        
         displayMainMenu();
 
         int command = 0;
@@ -48,6 +55,8 @@ void Game::run()
 
         processCommand(command);
     }
+
+    shutdownSDL();
 }
 
 void Game::displayMainMenu() const
@@ -1549,4 +1558,92 @@ void Game::showFinancialStatus() const
         << "Net Profit/Loss:       $" << profit << "\n"
         << "Current Cash:          $" << company.getMoney()
         << "\n";
+}
+
+bool Game::initializeSDL()
+{
+    if (!SDL_Init(SDL_INIT_VIDEO))
+    {
+        std::cerr
+            << "SDL initialization failed: "
+            << SDL_GetError()
+            << '\n';
+
+        return false;
+    }
+
+    window = SDL_CreateWindow(
+        "OilTycoon",
+        1280,
+        720,
+        SDL_WINDOW_RESIZABLE
+    );
+
+    if (window == nullptr)
+    {
+        std::cerr
+            << "SDL window creation failed: "
+            << SDL_GetError()
+            << '\n';
+
+        SDL_Quit();
+        return false;
+    }
+
+    renderer = SDL_CreateRenderer(
+        window,
+        nullptr
+    );
+
+    if (renderer == nullptr)
+    {
+        std::cerr
+            << "SDL renderer creation failed: "
+            << SDL_GetError()
+            << '\n';
+
+        SDL_DestroyWindow(window);
+        window = nullptr;
+
+        SDL_Quit();
+        return false;
+    }
+
+    sdlInitialized = true;
+
+    return true;
+}
+
+void Game::shutdownSDL()
+{
+    if (renderer != nullptr)
+    {
+        SDL_DestroyRenderer(renderer);
+        renderer = nullptr;
+    }
+
+    if (window != nullptr)
+    {
+        SDL_DestroyWindow(window);
+        window = nullptr;
+    }
+
+    if (sdlInitialized)
+    {
+        SDL_Quit();
+        sdlInitialized = false;
+    }
+}
+
+void Game::processSDLEvents()
+{
+    SDL_Event event;
+
+    while (SDL_PollEvent(&event))
+    {
+        if (event.type == SDL_EVENT_QUIT)
+        {
+            running = false;
+        }
+    }
 }
