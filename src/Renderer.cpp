@@ -4,7 +4,12 @@
 
 Renderer::Renderer()
     : window(nullptr),
-      renderer(nullptr)
+      renderer(nullptr),
+      cameraX(0.0f),
+      cameraY(0.0f),
+      zoom(5.0f),
+      screenWidth(1280),
+      screenHeight(720)
 {
 }
 
@@ -97,6 +102,12 @@ void Renderer::processEvents(bool& running)
 
 void Renderer::render()
 {
+    SDL_GetRenderOutputSize(
+    renderer,
+    &screenWidth,
+    &screenHeight
+    );
+    
     SDL_SetRenderDrawColor(
         renderer,
         20,
@@ -115,5 +126,40 @@ void Renderer::render()
         255
     );
 
+    SDL_FPoint hq =
+        worldToScreen(0.0f, 0.0f);
+
+    SDL_SetRenderDrawColor(
+        renderer,
+        255,
+        255,
+        255,
+        255
+    );
+
+    SDL_RenderPoint(
+        renderer,
+        hq.x,
+        hq.y
+    );
+    
     SDL_RenderPresent(renderer);
+}
+
+SDL_FPoint Renderer::worldToScreen(
+    float worldX,
+    float worldY
+) const
+{
+    SDL_FPoint screenPoint;
+
+    screenPoint.x =
+        (worldX - cameraX) * zoom
+        + static_cast<float>(screenWidth) / 2.0f;
+
+    screenPoint.y =
+        (cameraY - worldY) * zoom
+        + static_cast<float>(screenHeight) / 2.0f;
+
+    return screenPoint;
 }

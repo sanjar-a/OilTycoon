@@ -15,9 +15,18 @@ public:
     void processEvents(bool& running);
     void render();
 
+    SDL_FPoint worldToScreen(float worldX, float worldY) const;
+
 private:
     SDL_Window* window;
     SDL_Renderer* renderer;
+
+    float cameraX;
+    float cameraY;
+    float zoom;
+
+    int screenWidth;
+    int screenHeight;
 };
 
 #endif
