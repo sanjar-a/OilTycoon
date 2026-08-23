@@ -4,7 +4,7 @@
 #include "Company.h"
 
 #include <random>
-#include <SDL3/SDL.h>
+#include "Renderer.h"
 class Game
 {
 private:
@@ -15,6 +15,7 @@ private:
     static constexpr double MAX_OIL_PRICE = 75.0;
 
     Company company;
+    Renderer renderer;
 
     std::mt19937 randomGenerator;
     std::uniform_real_distribution<double> randomDistribution;
@@ -65,16 +66,8 @@ private:
     void updateOilPrice();
 
     void showFinancialStatus() const;
+    
 
-private:
-    SDL_Window* window = nullptr;
-    SDL_Renderer* renderer = nullptr;
-
-    bool sdlInitialized = false;
-
-    bool initializeSDL();
-    void shutdownSDL();
-    void processSDLEvents();
 };
 
 #endif

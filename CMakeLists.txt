@@ -32,6 +32,7 @@ add_executable(OilTycoon
     src/Technology.cpp
     src/Company.cpp
     src/Game.cpp
+    src/Renderer.cpp
 )
 
 
