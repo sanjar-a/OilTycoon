@@ -137,10 +137,16 @@ void Renderer::render()
         255
     );
 
-    SDL_RenderPoint(
+    SDL_FRect hqMarker{
+        hq.x - 8.0f,
+        hq.y - 8.0f,
+        16.0f,
+        16.0f
+    };
+
+    SDL_RenderFillRect(
         renderer,
-        hq.x,
-        hq.y
+        &hqMarker
     );
     
     SDL_RenderPresent(renderer);

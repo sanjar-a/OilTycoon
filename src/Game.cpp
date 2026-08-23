@@ -6,6 +6,7 @@
 #include <limits>
 #include <cstdlib>
 #include <ctime>
+#include <conio.h>
 
 Game::Game()
     : currentDay(1),
@@ -38,23 +39,38 @@ void Game::run()
         
         displayMainMenu();
 
-        int command = 0;
+std::cout << "\nSelect action: ";
 
-        std::cout << "\nSelect action: ";
-
-        if (!(std::cin >> command))
+        while (!_kbhit())
         {
-            std::cin.clear();
-            std::cin.ignore(
-                std::numeric_limits<std::streamsize>::max(),
-                '\n'
-            );
+            renderer.processEvents(running);
+            renderer.render();
 
-            std::cout << "Invalid input.\n";
-            continue;
+            SDL_Delay(16);
+
+            if (!running)
+            {
+                break;
+            }
         }
 
-        processCommand(command);
+        if (!running)
+        {
+            break;
+        }
+
+        char input = _getch();
+
+        if (input >= '0' && input <= '9')
+        {
+            int command = input - '0';
+
+            processCommand(command);
+        }
+        else
+        {
+            std::cout << "\nInvalid input.\n";
+        }
     }
 
     renderer.shutdown();
