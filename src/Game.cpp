@@ -34,6 +34,7 @@ void Game::run()
     while (running)
     {
         renderer.processEvents(running);
+        renderer.render();
         
         displayMainMenu();
 

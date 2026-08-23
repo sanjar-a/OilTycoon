@@ -94,3 +94,26 @@ void Renderer::processEvents(bool& running)
         }
     }
 }
+
+void Renderer::render()
+{
+    SDL_SetRenderDrawColor(
+        renderer,
+        20,
+        24,
+        30,
+        255
+    );
+
+    SDL_RenderClear(renderer);
+
+    SDL_SetRenderDrawColor(
+        renderer,
+        80,
+        80,
+        80,
+        255
+    );
+
+    SDL_RenderPresent(renderer);
+}

@@ -13,6 +13,7 @@ public:
     void shutdown();
 
     void processEvents(bool& running);
+    void render();
 
 private:
     SDL_Window* window;
