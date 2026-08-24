@@ -3,6 +3,7 @@
 
 #include <SDL3/SDL.h>
 
+class Company;
 class Renderer
 {
 public:
@@ -13,7 +14,7 @@ public:
     void shutdown();
 
     void processEvents(bool& running);
-    void render();
+    void render(const Company& company);
 
     SDL_FPoint worldToScreen(float worldX, float worldY) const;
 

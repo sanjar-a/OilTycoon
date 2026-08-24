@@ -1,5 +1,5 @@
 #include "Renderer.h"
-
+#include "Company.h"
 #include <iostream>
 
 Renderer::Renderer()
@@ -100,14 +100,15 @@ void Renderer::processEvents(bool& running)
     }
 }
 
-void Renderer::render()
+void Renderer::render(const Company& company)
 {
     SDL_GetRenderOutputSize(
-    renderer,
-    &screenWidth,
-    &screenHeight
+        renderer,
+        &screenWidth,
+        &screenHeight
     );
-    
+
+    // Background
     SDL_SetRenderDrawColor(
         renderer,
         20,
@@ -118,24 +119,212 @@ void Renderer::render()
 
     SDL_RenderClear(renderer);
 
+    // -------------------------------------------------
+    // Transportation networks
+    // -------------------------------------------------
+
+    SDL_SetRenderDrawColor(
+        renderer,
+        100,
+        100,
+        100,
+        255
+    );
+
+    for (const auto& network :
+         company.getTransportationNetworks())
+    {
+        if (!network->isBuilt())
+        {
+            continue;
+        }
+
+        const int reservoirId =
+            network->getReservoirId();
+
+        const Reservoir* reservoir = nullptr;
+
+        for (const auto& candidate :
+             company.getReservoirs())
+        {
+            if (candidate->getId() == reservoirId)
+            {
+                reservoir = candidate.get();
+                break;
+            }
+        }
+
+        if (reservoir == nullptr)
+        {
+            continue;
+        }
+
+        const Location& hqLocation =
+            company.getHeadquartersLocation();
+
+        const Location& reservoirLocation =
+            reservoir->getLocation();
+
+        SDL_FPoint hq =
+            worldToScreen(
+                static_cast<float>(hqLocation.getX()),
+                static_cast<float>(hqLocation.getY())
+            );
+
+        SDL_FPoint field =
+            worldToScreen(
+                static_cast<float>(reservoirLocation.getX()),
+                static_cast<float>(reservoirLocation.getY())
+            );
+
+        SDL_RenderLine(
+            renderer,
+            hq.x,
+            hq.y,
+            field.x,
+            field.y
+        );
+    }
+
+    // -------------------------------------------------
+    // Storage facilities
+    // -------------------------------------------------
+
     SDL_SetRenderDrawColor(
         renderer,
         80,
-        80,
-        80,
+        180,
+        120,
         255
     );
+
+    for (const auto& storage :
+         company.getStorageFacilities())
+    {
+        const Location& location =
+            storage->getLocation();
+
+        SDL_FPoint position =
+            worldToScreen(
+                static_cast<float>(location.getX()),
+                static_cast<float>(location.getY())
+            );
+
+        SDL_FRect marker{
+            position.x - 7.0f,
+            position.y - 7.0f,
+            14.0f,
+            14.0f
+        };
+
+        SDL_RenderFillRect(
+            renderer,
+            &marker
+        );
+    }
+
+    // -------------------------------------------------
+    // Reservoirs
+    // -------------------------------------------------
+
+    SDL_SetRenderDrawColor(
+        renderer,
+        220,
+        160,
+        60,
+        255
+    );
+
+    for (const auto& reservoir :
+         company.getReservoirs())
+    {
+        const Location& location =
+            reservoir->getLocation();
+
+        SDL_FPoint position =
+            worldToScreen(
+                static_cast<float>(location.getX()),
+                static_cast<float>(location.getY())
+            );
+
+        SDL_FRect marker{
+            position.x - 6.0f,
+            position.y - 6.0f,
+            12.0f,
+            12.0f
+        };
+
+        SDL_RenderFillRect(
+            renderer,
+            &marker
+        );
+    }
+
+    // -------------------------------------------------
+    // Wells
+    // -------------------------------------------------
+
+    SDL_SetRenderDrawColor(
+        renderer,
+        220,
+        220,
+        220,
+        255
+    );
+
+    for (const auto& well :
+         company.getWells())
+    {
+        const Reservoir* reservoir =
+            well->getReservoir();
+
+        if (reservoir == nullptr)
+        {
+            continue;
+        }
+
+        const Location& location =
+            reservoir->getLocation();
+
+        SDL_FPoint position =
+            worldToScreen(
+                static_cast<float>(location.getX()),
+                static_cast<float>(location.getY())
+            );
+
+        SDL_FRect marker{
+            position.x - 3.0f,
+            position.y - 3.0f,
+            6.0f,
+            6.0f
+        };
+
+        SDL_RenderFillRect(
+            renderer,
+            &marker
+        );
+    }
+
+    // -------------------------------------------------
+    // Headquarters
+    // -------------------------------------------------
+
+    SDL_SetRenderDrawColor(
+        renderer,
+        255,
+        255,
+        255,
+        255
+    );
+
+    const Location& hqLocation =
+        company.getHeadquartersLocation();
 
     SDL_FPoint hq =
-        worldToScreen(0.0f, 0.0f);
-
-    SDL_SetRenderDrawColor(
-        renderer,
-        255,
-        255,
-        255,
-        255
-    );
+        worldToScreen(
+            static_cast<float>(hqLocation.getX()),
+            static_cast<float>(hqLocation.getY())
+        );
 
     SDL_FRect hqMarker{
         hq.x - 8.0f,
@@ -148,7 +337,7 @@ void Renderer::render()
         renderer,
         &hqMarker
     );
-    
+
     SDL_RenderPresent(renderer);
 }
 

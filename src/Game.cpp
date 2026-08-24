@@ -35,7 +35,7 @@ void Game::run()
     while (running)
     {
         renderer.processEvents(running);
-        renderer.render();
+        renderer.render(company);
         
         displayMainMenu();
 
@@ -44,7 +44,7 @@ std::cout << "\nSelect action: ";
         while (!_kbhit())
         {
             renderer.processEvents(running);
-            renderer.render();
+            renderer.render(company);
 
             SDL_Delay(16);
 
