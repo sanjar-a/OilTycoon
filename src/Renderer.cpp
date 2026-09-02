@@ -104,6 +104,11 @@ void Renderer::processEvents(bool& running)
             );
         }
     }
+
+    const bool* keyboardState =
+        SDL_GetKeyboardState(nullptr);
+
+    handleKeyboard(keyboardState);
 }
 
 void Renderer::render(const Company& company)
@@ -390,4 +395,35 @@ void Renderer::handleMouseWheel(float wheelY)
     }
 
     clampZoom();
+}
+
+void Renderer::handleKeyboard(
+    const bool* keyboardState
+)
+{
+    const float cameraSpeed = 1.0f;
+
+    if (keyboardState[SDL_SCANCODE_W] ||
+        keyboardState[SDL_SCANCODE_UP])
+    {
+        cameraY += cameraSpeed;
+    }
+
+    if (keyboardState[SDL_SCANCODE_S] ||
+        keyboardState[SDL_SCANCODE_DOWN])
+    {
+        cameraY -= cameraSpeed;
+    }
+
+    if (keyboardState[SDL_SCANCODE_A] ||
+        keyboardState[SDL_SCANCODE_LEFT])
+    {
+        cameraX -= cameraSpeed;
+    }
+
+    if (keyboardState[SDL_SCANCODE_D] ||
+        keyboardState[SDL_SCANCODE_RIGHT])
+    {
+        cameraX += cameraSpeed;
+    }
 }

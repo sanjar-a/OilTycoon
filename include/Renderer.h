@@ -30,6 +30,7 @@ private:
     int screenHeight;
 
     void handleMouseWheel(float wheelY);
+    void handleKeyboard(const bool* keyboardState);
     void clampZoom();
 };
 
