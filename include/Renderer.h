@@ -28,6 +28,9 @@ private:
 
     int screenWidth;
     int screenHeight;
+
+    void handleMouseWheel(float wheelY);
+    void clampZoom();
 };
 
 #endif

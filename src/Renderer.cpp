@@ -97,6 +97,12 @@ void Renderer::processEvents(bool& running)
         {
             running = false;
         }
+        else if (event.type == SDL_EVENT_MOUSE_WHEEL)
+        {
+            handleMouseWheel(
+                event.wheel.y
+            );
+        }
     }
 }
 
@@ -357,4 +363,31 @@ SDL_FPoint Renderer::worldToScreen(
         + static_cast<float>(screenHeight) / 2.0f;
 
     return screenPoint;
+}
+
+void Renderer::clampZoom()
+{
+    if (zoom < 1.0f)
+    {
+        zoom = 1.0f;
+    }
+
+    if (zoom > 20.0f)
+    {
+        zoom = 20.0f;
+    }
+}
+
+void Renderer::handleMouseWheel(float wheelY)
+{
+    if (wheelY > 0.0f)
+    {
+        zoom *= 1.15f;
+    }
+    else if (wheelY < 0.0f)
+    {
+        zoom /= 1.15f;
+    }
+
+    clampZoom();
 }
