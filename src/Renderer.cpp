@@ -8,6 +8,9 @@ Renderer::Renderer()
       cameraX(0.0f),
       cameraY(0.0f),
       zoom(5.0f),
+      isDragging(false),
+      lastMouseX(0.0f),
+      lastMouseY(0.0f),
       screenWidth(1280),
       screenHeight(720)
 {
@@ -101,6 +104,30 @@ void Renderer::processEvents(bool& running)
         {
             handleMouseWheel(
                 event.wheel.y
+            );
+        }
+        else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+        {
+            if (event.button.button == SDL_BUTTON_LEFT)
+            {
+                handleMouseButtonDown(
+                    event.button.x,
+                    event.button.y
+                );
+            }
+        }
+        else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP)
+        {
+            if (event.button.button == SDL_BUTTON_LEFT)
+            {
+                handleMouseButtonUp();
+            }
+        }
+        else if (event.type == SDL_EVENT_MOUSE_MOTION)
+        {
+            handleMouseMotion(
+                event.motion.x,
+                event.motion.y
             );
         }
     }
@@ -457,4 +484,45 @@ void Renderer::clampCamera()
     {
         cameraY = maxY;
     }
+}
+
+void Renderer::handleMouseButtonDown(
+    float mouseX,
+    float mouseY
+)
+{
+    isDragging = true;
+
+    lastMouseX = mouseX;
+    lastMouseY = mouseY;
+}
+
+void Renderer::handleMouseButtonUp()
+{
+    isDragging = false;
+}
+
+void Renderer::handleMouseMotion(
+    float mouseX,
+    float mouseY
+)
+{
+    if (!isDragging)
+    {
+        return;
+    }
+
+    const float deltaX =
+        mouseX - lastMouseX;
+
+    const float deltaY =
+        mouseY - lastMouseY;
+
+    cameraX -= deltaX / zoom;
+    cameraY += deltaY / zoom;
+
+    lastMouseX = mouseX;
+    lastMouseY = mouseY;
+
+    clampCamera();
 }
