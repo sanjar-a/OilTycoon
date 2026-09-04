@@ -53,7 +53,10 @@ void Game::run()
             deltaTime = 0.25;
         }
 
-        renderer.processEvents(running);
+        renderer.processEvents(
+            running,
+            company
+        );
 
         updateSimulation(deltaTime);
 

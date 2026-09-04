@@ -4,6 +4,17 @@
 #include <SDL3/SDL.h>
 
 class Company;
+
+enum class SelectedObjectType
+{
+    None,
+    Headquarters,
+    Reservoir,
+    Well,
+    Storage,
+    Transportation
+};
+
 class Renderer
 {
 public:
@@ -13,10 +24,17 @@ public:
     bool initialize();
     void shutdown();
 
-    void processEvents(bool& running);
+    void processEvents(
+        bool& running,
+        const Company& company
+    );
+
     void render(const Company& company);
 
-    SDL_FPoint worldToScreen(float worldX, float worldY) const;
+    SDL_FPoint worldToScreen(
+        float worldX,
+        float worldY
+    ) const;
 
 private:
     SDL_Window* window;
@@ -27,17 +45,54 @@ private:
     float zoom;
 
     bool isDragging;
+    bool mouseMovedDuringClick;
+
     float lastMouseX;
     float lastMouseY;
+
+    float mouseDownX;
+    float mouseDownY;
 
     int screenWidth;
     int screenHeight;
 
+    SelectedObjectType selectedObjectType;
+    int selectedObjectId;
+
     void handleMouseWheel(float wheelY);
-    void handleKeyboard(const bool* keyboardState);
-    void handleMouseButtonDown(float mouseX, float mouseY);
-    void handleMouseButtonUp();
-    void handleMouseMotion(float mouseX, float mouseY);
+
+    void handleKeyboard(
+        const bool* keyboardState
+    );
+
+    void handleMouseButtonDown(
+        float mouseX,
+        float mouseY
+    );
+
+    void handleMouseButtonUp(
+        float mouseX,
+        float mouseY,
+        const Company& company
+    );
+
+    void handleMouseMotion(
+        float mouseX,
+        float mouseY
+    );
+
+    void selectObjectAt(
+        float mouseX,
+        float mouseY,
+        const Company& company
+    );
+
+    void clearSelection();
+
+    void renderSelection(
+        const Company& company
+    );
+
     void clampCamera();
     void clampZoom();
 };

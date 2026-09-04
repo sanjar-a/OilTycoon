@@ -9,10 +9,15 @@ Renderer::Renderer()
       cameraY(0.0f),
       zoom(5.0f),
       isDragging(false),
+      mouseMovedDuringClick(false),
       lastMouseX(0.0f),
       lastMouseY(0.0f),
+      mouseDownX(0.0f),
+      mouseDownY(0.0f),
       screenWidth(1280),
-      screenHeight(720)
+      screenHeight(720),
+      selectedObjectType(SelectedObjectType::None),
+      selectedObjectId(-1)
 {
 }
 
@@ -90,7 +95,10 @@ void Renderer::shutdown()
     SDL_Quit();
 }
 
-void Renderer::processEvents(bool& running)
+void Renderer::processEvents(
+    bool& running,
+    const Company& company
+)
 {
     SDL_Event event;
 
@@ -120,7 +128,11 @@ void Renderer::processEvents(bool& running)
         {
             if (event.button.button == SDL_BUTTON_LEFT)
             {
-                handleMouseButtonUp();
+                handleMouseButtonUp(
+                    event.button.x,
+                    event.button.y,
+                    company
+                );
             }
         }
         else if (event.type == SDL_EVENT_MOUSE_MOTION)
@@ -375,7 +387,7 @@ void Renderer::render(const Company& company)
         renderer,
         &hqMarker
     );
-
+    renderSelection(company);
     SDL_RenderPresent(renderer);
 }
 
@@ -492,14 +504,32 @@ void Renderer::handleMouseButtonDown(
 )
 {
     isDragging = true;
+    mouseMovedDuringClick = false;
 
     lastMouseX = mouseX;
     lastMouseY = mouseY;
+
+    mouseDownX = mouseX;
+    mouseDownY = mouseY;
 }
 
-void Renderer::handleMouseButtonUp()
+void Renderer::handleMouseButtonUp(
+    float mouseX,
+    float mouseY,
+    const Company& company
+)
 {
+    if (!mouseMovedDuringClick)
+    {
+        selectObjectAt(
+            mouseX,
+            mouseY,
+            company
+        );
+    }
+
     isDragging = false;
+    mouseMovedDuringClick = false;
 }
 
 void Renderer::handleMouseMotion(
@@ -518,6 +548,22 @@ void Renderer::handleMouseMotion(
     const float deltaY =
         mouseY - lastMouseY;
 
+    const float totalDeltaX =
+        mouseX - mouseDownX;
+
+    const float totalDeltaY =
+        mouseY - mouseDownY;
+
+    const float dragThreshold = 5.0f;
+
+    if (totalDeltaX > dragThreshold ||
+        totalDeltaX < -dragThreshold ||
+        totalDeltaY > dragThreshold ||
+        totalDeltaY < -dragThreshold)
+    {
+        mouseMovedDuringClick = true;
+    }
+
     cameraX -= deltaX / zoom;
     cameraY += deltaY / zoom;
 
@@ -525,4 +571,484 @@ void Renderer::handleMouseMotion(
     lastMouseY = mouseY;
 
     clampCamera();
+}
+
+void Renderer::selectObjectAt(
+    float mouseX,
+    float mouseY,
+    const Company& company
+)
+{
+    const float selectionRadius = 12.0f;
+
+    float bestDistanceSquared =
+        selectionRadius * selectionRadius;
+
+    SelectedObjectType bestType =
+        SelectedObjectType::None;
+
+    int bestId = -1;
+
+    // -------------------------------------------------
+    // Headquarters
+    // -------------------------------------------------
+
+    const Location& hqLocation =
+        company.getHeadquartersLocation();
+
+    SDL_FPoint hq =
+        worldToScreen(
+            static_cast<float>(
+                hqLocation.getX()
+            ),
+            static_cast<float>(
+                hqLocation.getY()
+            )
+        );
+
+    float dx =
+        mouseX - hq.x;
+
+    float dy =
+        mouseY - hq.y;
+
+    float distanceSquared =
+        dx * dx + dy * dy;
+
+    if (distanceSquared <= bestDistanceSquared)
+    {
+        bestDistanceSquared = distanceSquared;
+
+        bestType =
+            SelectedObjectType::Headquarters;
+
+        bestId = 0;
+    }
+
+    // -------------------------------------------------
+    // Reservoirs
+    // -------------------------------------------------
+
+    for (const auto& reservoir :
+         company.getReservoirs())
+    {
+        const Location& location =
+            reservoir->getLocation();
+
+        SDL_FPoint position =
+            worldToScreen(
+                static_cast<float>(
+                    location.getX()
+                ),
+                static_cast<float>(
+                    location.getY()
+                )
+            );
+
+        dx = mouseX - position.x;
+        dy = mouseY - position.y;
+
+        distanceSquared =
+            dx * dx + dy * dy;
+
+        if (distanceSquared <= bestDistanceSquared)
+        {
+            bestDistanceSquared =
+                distanceSquared;
+
+            bestType =
+                SelectedObjectType::Reservoir;
+
+            bestId =
+                reservoir->getId();
+        }
+    }
+
+    // -------------------------------------------------
+    // Wells
+    // -------------------------------------------------
+
+    for (const auto& well :
+         company.getWells())
+    {
+        const Reservoir* reservoir =
+            well->getReservoir();
+
+        if (reservoir == nullptr)
+        {
+            continue;
+        }
+
+        const Location& location =
+            reservoir->getLocation();
+
+        SDL_FPoint position =
+            worldToScreen(
+                static_cast<float>(
+                    location.getX()
+                ),
+                static_cast<float>(
+                    location.getY()
+                )
+            );
+
+        dx = mouseX - position.x;
+        dy = mouseY - position.y;
+
+        distanceSquared =
+            dx * dx + dy * dy;
+
+        if (distanceSquared <= bestDistanceSquared)
+        {
+            bestDistanceSquared =
+                distanceSquared;
+
+            bestType =
+                SelectedObjectType::Well;
+
+            bestId =
+                well->getId();
+        }
+    }
+
+    // -------------------------------------------------
+    // Storage facilities
+    // -------------------------------------------------
+
+    for (const auto& storage :
+         company.getStorageFacilities())
+    {
+        const Location& location =
+            storage->getLocation();
+
+        SDL_FPoint position =
+            worldToScreen(
+                static_cast<float>(
+                    location.getX()
+                ),
+                static_cast<float>(
+                    location.getY()
+                )
+            );
+
+        dx = mouseX - position.x;
+        dy = mouseY - position.y;
+
+        distanceSquared =
+            dx * dx + dy * dy;
+
+        if (distanceSquared <= bestDistanceSquared)
+        {
+            bestDistanceSquared =
+                distanceSquared;
+
+            bestType =
+                SelectedObjectType::Storage;
+
+            bestId =
+                storage->getId();
+        }
+    }
+
+    // -------------------------------------------------
+    // Transportation networks
+    // -------------------------------------------------
+
+    for (const auto& network :
+         company.getTransportationNetworks())
+    {
+        if (!network->isBuilt())
+        {
+            continue;
+        }
+
+        const int reservoirId =
+            network->getReservoirId();
+
+        const Reservoir* reservoir =
+            nullptr;
+
+        for (const auto& candidate :
+             company.getReservoirs())
+        {
+            if (candidate->getId() ==
+                reservoirId)
+            {
+                reservoir =
+                    candidate.get();
+
+                break;
+            }
+        }
+
+        if (reservoir == nullptr)
+        {
+            continue;
+        }
+
+        const Location& location =
+            reservoir->getLocation();
+
+        SDL_FPoint position =
+            worldToScreen(
+                static_cast<float>(
+                    location.getX()
+                ),
+                static_cast<float>(
+                    location.getY()
+                )
+            );
+
+        dx = mouseX - position.x;
+        dy = mouseY - position.y;
+
+        distanceSquared =
+            dx * dx + dy * dy;
+
+        if (distanceSquared <= bestDistanceSquared)
+        {
+            bestDistanceSquared =
+                distanceSquared;
+
+            bestType =
+                SelectedObjectType::Transportation;
+
+            bestId =
+                reservoirId;
+        }
+    }
+
+    if (bestType == SelectedObjectType::None)
+    {
+        clearSelection();
+        return;
+    }
+    selectedObjectType = bestType;
+    selectedObjectId = bestId;
+}
+
+void Renderer::clearSelection()
+{
+    selectedObjectType =
+        SelectedObjectType::None;
+
+    selectedObjectId = -1;
+}
+
+void Renderer::renderSelection(
+    const Company& company
+)
+{
+    if (selectedObjectType ==
+        SelectedObjectType::None)
+    {
+        return;
+    }
+
+    SDL_SetRenderDrawColor(
+        renderer,
+        255,
+        255,
+        0,
+        255
+    );
+
+    SDL_FPoint position;
+
+    if (selectedObjectType ==
+        SelectedObjectType::Headquarters)
+    {
+        const Location& location =
+            company.getHeadquartersLocation();
+
+        position =
+            worldToScreen(
+                static_cast<float>(
+                    location.getX()
+                ),
+                static_cast<float>(
+                    location.getY()
+                )
+            );
+    }
+    else if (selectedObjectType ==
+             SelectedObjectType::Reservoir)
+    {
+        for (const auto& reservoir :
+             company.getReservoirs())
+        {
+            if (reservoir->getId() ==
+                selectedObjectId)
+            {
+                const Location& location =
+                    reservoir->getLocation();
+
+                position =
+                    worldToScreen(
+                        static_cast<float>(
+                            location.getX()
+                        ),
+                        static_cast<float>(
+                            location.getY()
+                        )
+                    );
+
+                SDL_FRect highlight{
+                    position.x - 10.0f,
+                    position.y - 10.0f,
+                    20.0f,
+                    20.0f
+                };
+
+                SDL_RenderRect(
+                    renderer,
+                    &highlight
+                );
+
+                return;
+            }
+        }
+
+        return;
+    }
+    else if (selectedObjectType ==
+             SelectedObjectType::Well)
+    {
+        for (const auto& well :
+             company.getWells())
+        {
+            if (well->getId() ==
+                selectedObjectId)
+            {
+                const Reservoir* reservoir =
+                    well->getReservoir();
+
+                if (reservoir == nullptr)
+                {
+                    return;
+                }
+
+                const Location& location =
+                    reservoir->getLocation();
+
+                position =
+                    worldToScreen(
+                        static_cast<float>(
+                            location.getX()
+                        ),
+                        static_cast<float>(
+                            location.getY()
+                        )
+                    );
+
+                SDL_FRect highlight{
+                    position.x - 8.0f,
+                    position.y - 8.0f,
+                    16.0f,
+                    16.0f
+                };
+
+                SDL_RenderRect(
+                    renderer,
+                    &highlight
+                );
+
+                return;
+            }
+        }
+
+        return;
+    }
+    else if (selectedObjectType ==
+             SelectedObjectType::Storage)
+    {
+        for (const auto& storage :
+             company.getStorageFacilities())
+        {
+            if (storage->getId() ==
+                selectedObjectId)
+            {
+                const Location& location =
+                    storage->getLocation();
+
+                position =
+                    worldToScreen(
+                        static_cast<float>(
+                            location.getX()
+                        ),
+                        static_cast<float>(
+                            location.getY()
+                        )
+                    );
+
+                SDL_FRect highlight{
+                    position.x - 10.0f,
+                    position.y - 10.0f,
+                    20.0f,
+                    20.0f
+                };
+
+                SDL_RenderRect(
+                    renderer,
+                    &highlight
+                );
+
+                return;
+            }
+        }
+
+        return;
+    }
+    else if (selectedObjectType ==
+             SelectedObjectType::Transportation)
+    {
+        for (const auto& reservoir :
+             company.getReservoirs())
+        {
+            if (reservoir->getId() ==
+                selectedObjectId)
+            {
+                const Location& location =
+                    reservoir->getLocation();
+
+                position =
+                    worldToScreen(
+                        static_cast<float>(
+                            location.getX()
+                        ),
+                        static_cast<float>(
+                            location.getY()
+                        )
+                    );
+
+                SDL_FRect highlight{
+                    position.x - 12.0f,
+                    position.y - 12.0f,
+                    24.0f,
+                    24.0f
+                };
+
+                SDL_RenderRect(
+                    renderer,
+                    &highlight
+                );
+
+                return;
+            }
+        }
+
+        return;
+    }
+
+    SDL_FRect highlight{
+        position.x - 12.0f,
+        position.y - 12.0f,
+        24.0f,
+        24.0f
+    };
+
+    SDL_RenderRect(
+        renderer,
+        &highlight
+    );
 }
