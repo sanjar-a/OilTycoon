@@ -426,4 +426,35 @@ void Renderer::handleKeyboard(
     {
         cameraX += cameraSpeed;
     }
+
+    clampCamera();
+}
+
+void Renderer::clampCamera()
+{
+    const float minX = -20.0f;
+    const float maxX = 90.0f;
+
+    const float minY = -20.0f;
+    const float maxY = 90.0f;
+
+    if (cameraX < minX)
+    {
+        cameraX = minX;
+    }
+
+    if (cameraX > maxX)
+    {
+        cameraX = maxX;
+    }
+
+    if (cameraY < minY)
+    {
+        cameraY = minY;
+    }
+
+    if (cameraY > maxY)
+    {
+        cameraY = maxY;
+    }
 }

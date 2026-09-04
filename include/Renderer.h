@@ -31,6 +31,7 @@ private:
 
     void handleMouseWheel(float wheelY);
     void handleKeyboard(const bool* keyboardState);
+    void clampCamera();
     void clampZoom();
 };
 
