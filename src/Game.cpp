@@ -14,7 +14,10 @@ Game::Game()
       company(),
       randomGenerator(12345),
       randomDistribution(0.0, 1.0),
-      running(true)
+      running(true),
+      simulationRunning(false),
+      simulationAccumulator(0.0),
+      menuNeedsRedraw(true)
 {
 }
 
@@ -32,45 +35,43 @@ void Game::run()
         return;
     }
 
+    Uint64 previousTime = SDL_GetTicks();
+
     while (running)
     {
+        Uint64 currentTime = SDL_GetTicks();
+
+        double deltaTime =
+            static_cast<double>(
+                currentTime - previousTime
+            ) / 1000.0;
+
+        previousTime = currentTime;
+
+        if (deltaTime > 0.25)
+        {
+            deltaTime = 0.25;
+        }
+
         renderer.processEvents(running);
+
+        updateSimulation(deltaTime);
+
         renderer.render(company);
-        
-        displayMainMenu();
 
-std::cout << "\nSelect action: ";
-
-        while (!_kbhit())
+        if (menuNeedsRedraw)
         {
-            renderer.processEvents(running);
-            renderer.render(company);
+            displayMainMenu();
 
-            SDL_Delay(16);
+            std::cout
+                << "\nSelect action: ";
 
-            if (!running)
-            {
-                break;
-            }
+            menuNeedsRedraw = false;
         }
 
-        if (!running)
-        {
-            break;
-        }
+        handleInput();
 
-        char input = _getch();
-
-        if (input >= '0' && input <= '9')
-        {
-            int command = input - '0';
-
-            processCommand(command);
-        }
-        else
-        {
-            std::cout << "\nInvalid input.\n";
-        }
+        SDL_Delay(16);
     }
 
     renderer.shutdown();
@@ -110,6 +111,22 @@ void Game::displayMainMenu() const
         << "15. Unlock Technology\n"
         << "16. Manage Infrastructure\n"
         << "0. Exit\n";
+
+    if (simulationRunning)
+    {
+        std::cout
+            << "\nSimulation: PLAYING "
+            << "(1 day/sec)\n";
+    }
+    else
+    {
+        std::cout
+            << "\nSimulation: PAUSED\n";
+    }
+
+    std::cout
+        << "SPACE = Play/Pause\n"
+        << "Enter command + ENTER\n";
 }
 
 void Game::manageInfrastructure()
@@ -1575,4 +1592,125 @@ void Game::showFinancialStatus() const
         << "Net Profit/Loss:       $" << profit << "\n"
         << "Current Cash:          $" << company.getMoney()
         << "\n";
+}
+
+void Game::updateSimulation(double deltaTime)
+{
+    if (!simulationRunning)
+    {
+        return;
+    }
+
+    simulationAccumulator += deltaTime;
+
+    while (simulationAccumulator >= 1.0)
+    {
+        advanceDay();
+
+        simulationAccumulator -= 1.0;
+    }
+}
+
+void Game::handleInput()
+{
+    static std::string inputBuffer;
+
+    while (_kbhit())
+    {
+        int character = _getch();
+
+        // ENTER
+        if (character == 13)
+        {
+            if (!inputBuffer.empty())
+            {
+                processTextCommand(inputBuffer);
+                inputBuffer.clear();
+                menuNeedsRedraw = true;
+            }
+
+            std::cout << "\nSelect action: ";
+        }
+
+        // BACKSPACE
+        else if (character == 8)
+        {
+            if (!inputBuffer.empty())
+            {
+                inputBuffer.pop_back();
+
+                std::cout
+                    << "\b \b";
+            }
+        }
+
+        // SPACE
+        else if (character == ' ')
+        {
+            simulationRunning = !simulationRunning;
+
+            if (simulationRunning)
+            {
+                std::cout
+                    << "\nSimulation PLAYING.\n";
+            }
+            else
+            {
+                std::cout
+                    << "\nSimulation PAUSED.\n";
+            }
+
+            menuNeedsRedraw = true;
+        }
+
+        // DIGITS
+        else if (character >= '0' &&
+                 character <= '9')
+        {
+            inputBuffer +=
+                static_cast<char>(character);
+
+            std::cout
+                << static_cast<char>(character);
+        }
+    }
+}
+
+void Game::processTextCommand(
+    const std::string& input
+)
+{
+    try
+    {
+        std::size_t position = 0;
+
+        int command =
+            std::stoi(input, &position);
+
+        // Make sure the entire input was numeric.
+        if (position != input.length())
+        {
+            std::cout
+                << "\nInvalid command.\n";
+
+            return;
+        }
+
+        if (command < 0 || command > 16)
+        {
+            std::cout
+                << "\nUnknown command: "
+                << command
+                << "\n";
+
+            return;
+        }
+
+        processCommand(command);
+    }
+    catch (...)
+    {
+        std::cout
+            << "\nInvalid command.\n";
+    }
 }

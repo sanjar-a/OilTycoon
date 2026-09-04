@@ -4,6 +4,7 @@
 #include "Company.h"
 
 #include <random>
+#include <string>
 #include "Renderer.h"
 class Game
 {
@@ -21,6 +22,9 @@ private:
     std::uniform_real_distribution<double> randomDistribution;
 
     bool running;
+    bool simulationRunning;
+    double simulationAccumulator;
+    bool menuNeedsRedraw;
 
 public:
     Game();
@@ -66,6 +70,10 @@ private:
     void updateOilPrice();
 
     void showFinancialStatus() const;
+
+    void updateSimulation(double deltaTime);
+    void handleInput();
+    void processTextCommand(const std::string& input);
     
 
 };
