@@ -262,6 +262,25 @@ void Renderer::render(const Company& company)
                 static_cast<float>(location.getY())
             );
 
+        const int storageIndex =
+            storage->getId() - 1;
+
+        const float offsetDistance =
+            20.0f;
+
+        const float angleStep =
+            0.785398f; // 45 degrees
+
+        const float angle =
+            static_cast<float>(storageIndex) *
+            angleStep;
+
+        position.x +=
+            std::cos(angle) * offsetDistance;
+
+        position.y +=
+            std::sin(angle) * offsetDistance;
+
         SDL_FRect marker{
             position.x - 7.0f,
             position.y - 7.0f,
@@ -773,6 +792,25 @@ void Renderer::selectObjectAt(
                 )
             );
 
+        const int storageIndex =
+            storage->getId() - 1;
+
+        const float offsetDistance =
+            20.0f;
+
+        const float angleStep =
+            0.785398f;
+
+        const float angle =
+            static_cast<float>(storageIndex) *
+            angleStep;
+
+        position.x +=
+            std::cos(angle) * offsetDistance;
+
+        position.y +=
+            std::sin(angle) * offsetDistance;
+
         dx = mouseX - position.x;
         dy = mouseY - position.y;
 
@@ -794,69 +832,148 @@ void Renderer::selectObjectAt(
 
     // -------------------------------------------------
     // Transportation networks
+    //
+    // Transportation is a LINE, not a point.
+    //
+    // Point objects such as HQ, reservoirs, wells and
+    // storage facilities have priority. Therefore we only
+    // check transportation when nothing else has already
+    // been selected.
     // -------------------------------------------------
 
-    for (const auto& network :
-         company.getTransportationNetworks())
+    if (bestType == SelectedObjectType::None)
     {
-        if (!network->isBuilt())
+        for (const auto& network :
+            company.getTransportationNetworks())
         {
-            continue;
-        }
-
-        const int reservoirId =
-            network->getReservoirId();
-
-        const Reservoir* reservoir =
-            nullptr;
-
-        for (const auto& candidate :
-             company.getReservoirs())
-        {
-            if (candidate->getId() ==
-                reservoirId)
+            if (!network->isBuilt())
             {
-                reservoir =
-                    candidate.get();
+                continue;
+            }
+
+            const int reservoirId =
+                network->getReservoirId();
+
+            const Reservoir* reservoir =
+                nullptr;
+
+            for (const auto& candidate :
+                company.getReservoirs())
+            {
+                if (candidate->getId() ==
+                    reservoirId)
+                {
+                    reservoir =
+                        candidate.get();
+
+                    break;
+                }
+            }
+
+            if (reservoir == nullptr)
+            {
+                continue;
+            }
+
+            const Location& hqLocation =
+                company.getHeadquartersLocation();
+
+            const Location& reservoirLocation =
+                reservoir->getLocation();
+
+            SDL_FPoint hq =
+                worldToScreen(
+                    static_cast<float>(
+                        hqLocation.getX()
+                    ),
+                    static_cast<float>(
+                        hqLocation.getY()
+                    )
+                );
+
+            SDL_FPoint field =
+                worldToScreen(
+                    static_cast<float>(
+                        reservoirLocation.getX()
+                    ),
+                    static_cast<float>(
+                        reservoirLocation.getY()
+                    )
+                );
+
+            // -------------------------------------------------
+            // Distance from mouse point to transportation line
+            // -------------------------------------------------
+
+            const float lineX =
+                field.x - hq.x;
+
+            const float lineY =
+                field.y - hq.y;
+
+            const float lineLengthSquared =
+                lineX * lineX +
+                lineY * lineY;
+
+            if (lineLengthSquared <= 0.0001f)
+            {
+                continue;
+            }
+
+            const float mouseLineX =
+                mouseX - hq.x;
+
+            const float mouseLineY =
+                mouseY - hq.y;
+
+            float t =
+                (
+                    mouseLineX * lineX +
+                    mouseLineY * lineY
+                ) / lineLengthSquared;
+
+            // Clamp to the actual line segment
+            if (t < 0.0f)
+            {
+                t = 0.0f;
+            }
+
+            if (t > 1.0f)
+            {
+                t = 1.0f;
+            }
+
+            const float closestX =
+                hq.x + t * lineX;
+
+            const float closestY =
+                hq.y + t * lineY;
+
+            const float dxLine =
+                mouseX - closestX;
+
+            const float dyLine =
+                mouseY - closestY;
+
+            const float distanceToLineSquared =
+                dxLine * dxLine +
+                dyLine * dyLine;
+
+            const float transportationSelectionRadius =
+                6.0f;
+
+            if (distanceToLineSquared <=
+                transportationSelectionRadius *
+                transportationSelectionRadius)
+            {
+                bestType =
+                    SelectedObjectType::Transportation;
+
+                bestId =
+                    reservoirId;
 
                 break;
             }
-        }
-
-        if (reservoir == nullptr)
-        {
-            continue;
-        }
-
-        const Location& location =
-            reservoir->getLocation();
-
-        SDL_FPoint position =
-            worldToScreen(
-                static_cast<float>(
-                    location.getX()
-                ),
-                static_cast<float>(
-                    location.getY()
-                )
-            );
-
-        dx = mouseX - position.x;
-        dy = mouseY - position.y;
-
-        distanceSquared =
-            dx * dx + dy * dy;
-
-        if (distanceSquared <= bestDistanceSquared)
-        {
-            bestDistanceSquared =
-                distanceSquared;
-
-            bestType =
-                SelectedObjectType::Transportation;
-
-            bestId =
-                reservoirId;
         }
     }
 
