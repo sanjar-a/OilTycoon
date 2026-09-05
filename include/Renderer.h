@@ -93,6 +93,16 @@ private:
         const Company& company
     );
 
+    void renderInformationPanel(
+        const Company& company
+    );
+
+    void renderPanelText(
+        float x,
+        float y,
+        const char* text
+    );
+
     void clampCamera();
     void clampZoom();
 };
