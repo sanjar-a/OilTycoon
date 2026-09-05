@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "Company.h"
+#include <cmath>
 #include <cstdio>
 #include <iostream>
 
@@ -324,7 +325,7 @@ void Renderer::render(const Company& company)
     );
 
     for (const auto& well :
-         company.getWells())
+        company.getWells())
     {
         const Reservoir* reservoir =
             well->getReservoir();
@@ -343,11 +344,31 @@ void Renderer::render(const Company& company)
                 static_cast<float>(location.getY())
             );
 
+        // Place wells around the reservoir
+        const int wellIndex =
+            well->getId() - 1;
+
+        const float offsetDistance =
+            16.0f;
+
+        const float angleStep =
+            0.785398f; // 45 degrees
+
+        const float angle =
+            static_cast<float>(wellIndex) *
+            angleStep;
+
+        position.x +=
+            std::cos(angle) * offsetDistance;
+
+        position.y +=
+            std::sin(angle) * offsetDistance;
+
         SDL_FRect marker{
-            position.x - 3.0f,
-            position.y - 3.0f,
-            6.0f,
-            6.0f
+            position.x - 4.0f,
+            position.y - 4.0f,
+            8.0f,
+            8.0f
         };
 
         SDL_RenderFillRect(
@@ -671,7 +692,7 @@ void Renderer::selectObjectAt(
     // -------------------------------------------------
 
     for (const auto& well :
-         company.getWells())
+        company.getWells())
     {
         const Reservoir* reservoir =
             well->getReservoir();
@@ -686,21 +707,40 @@ void Renderer::selectObjectAt(
 
         SDL_FPoint position =
             worldToScreen(
-                static_cast<float>(
-                    location.getX()
-                ),
-                static_cast<float>(
-                    location.getY()
-                )
+                static_cast<float>(location.getX()),
+                static_cast<float>(location.getY())
             );
 
-        dx = mouseX - position.x;
-        dy = mouseY - position.y;
+        // Use exactly the same offset as rendering
+        const int wellIndex =
+            well->getId() - 1;
+
+        const float offsetDistance =
+            16.0f;
+
+        const float angleStep =
+            0.785398f;
+
+        const float angle =
+            static_cast<float>(wellIndex) *
+            angleStep;
+
+        position.x +=
+            std::cos(angle) * offsetDistance;
+
+        position.y +=
+            std::sin(angle) * offsetDistance;
+
+        dx =
+            mouseX - position.x;
+
+        dy =
+            mouseY - position.y;
 
         distanceSquared =
             dx * dx + dy * dy;
 
-        if (distanceSquared <= bestDistanceSquared)
+        if (distanceSquared < bestDistanceSquared)
         {
             bestDistanceSquared =
                 distanceSquared;
