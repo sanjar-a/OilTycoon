@@ -3,6 +3,8 @@
 
 #include <SDL3/SDL.h>
 
+class Well;
+class StorageFacility;
 class Company;
 
 enum class SelectedObjectType
@@ -102,6 +104,14 @@ private:
         float y,
         const char* text
     );
+
+    SDL_FPoint getWellScreenPosition(
+        const Well& well
+    ) const;
+
+    SDL_FPoint getStorageScreenPosition(
+        const StorageFacility& storage
+    ) const;
 
     void clampCamera();
     void clampZoom();

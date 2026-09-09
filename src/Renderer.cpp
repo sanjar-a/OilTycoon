@@ -253,33 +253,8 @@ void Renderer::render(const Company& company)
     for (const auto& storage :
          company.getStorageFacilities())
     {
-        const Location& location =
-            storage->getLocation();
-
         SDL_FPoint position =
-            worldToScreen(
-                static_cast<float>(location.getX()),
-                static_cast<float>(location.getY())
-            );
-
-        const int storageIndex =
-            storage->getId() - 1;
-
-        const float offsetDistance =
-            20.0f;
-
-        const float angleStep =
-            0.785398f; // 45 degrees
-
-        const float angle =
-            static_cast<float>(storageIndex) *
-            angleStep;
-
-        position.x +=
-            std::cos(angle) * offsetDistance;
-
-        position.y +=
-            std::sin(angle) * offsetDistance;
+            getStorageScreenPosition(*storage);
 
         SDL_FRect marker{
             position.x - 7.0f,
@@ -346,42 +321,8 @@ void Renderer::render(const Company& company)
     for (const auto& well :
         company.getWells())
     {
-        const Reservoir* reservoir =
-            well->getReservoir();
-
-        if (reservoir == nullptr)
-        {
-            continue;
-        }
-
-        const Location& location =
-            reservoir->getLocation();
-
         SDL_FPoint position =
-            worldToScreen(
-                static_cast<float>(location.getX()),
-                static_cast<float>(location.getY())
-            );
-
-        // Place wells around the reservoir
-        const int wellIndex =
-            well->getId() - 1;
-
-        const float offsetDistance =
-            16.0f;
-
-        const float angleStep =
-            0.785398f; // 45 degrees
-
-        const float angle =
-            static_cast<float>(wellIndex) *
-            angleStep;
-
-        position.x +=
-            std::cos(angle) * offsetDistance;
-
-        position.y +=
-            std::sin(angle) * offsetDistance;
+            getWellScreenPosition(*well);
 
         SDL_FRect marker{
             position.x - 4.0f,
@@ -449,6 +390,87 @@ SDL_FPoint Renderer::worldToScreen(
         + static_cast<float>(screenHeight) / 2.0f;
 
     return screenPoint;
+}
+
+SDL_FPoint Renderer::getWellScreenPosition(
+    const Well& well
+) const
+{
+    const Reservoir* reservoir =
+        well.getReservoir();
+
+    if (reservoir == nullptr)
+    {
+        return SDL_FPoint{
+            -10000.0f,
+            -10000.0f
+        };
+    }
+
+    const Location& location =
+        reservoir->getLocation();
+
+    SDL_FPoint position =
+        worldToScreen(
+            static_cast<float>(location.getX()),
+            static_cast<float>(location.getY())
+        );
+
+    const int wellIndex =
+        well.getId() - 1;
+
+    const float offsetDistance =
+        16.0f;
+
+    const float angleStep =
+        0.785398f; // 45 degrees
+
+    const float angle =
+        static_cast<float>(wellIndex) *
+        angleStep;
+
+    position.x +=
+        std::cos(angle) * offsetDistance;
+
+    position.y +=
+        std::sin(angle) * offsetDistance;
+
+    return position;
+}
+
+SDL_FPoint Renderer::getStorageScreenPosition(
+    const StorageFacility& storage
+) const
+{
+    const Location& location =
+        storage.getLocation();
+
+    SDL_FPoint position =
+        worldToScreen(
+            static_cast<float>(location.getX()),
+            static_cast<float>(location.getY())
+        );
+
+    const int storageIndex =
+        storage.getId() - 1;
+
+    const float offsetDistance =
+        20.0f;
+
+    const float angleStep =
+        0.785398f; // 45 degrees
+
+    const float angle =
+        static_cast<float>(storageIndex) *
+        angleStep;
+
+    position.x +=
+        std::cos(angle) * offsetDistance;
+
+    position.y +=
+        std::sin(angle) * offsetDistance;
+
+    return position;
 }
 
 void Renderer::clampZoom()
@@ -713,42 +735,8 @@ void Renderer::selectObjectAt(
     for (const auto& well :
         company.getWells())
     {
-        const Reservoir* reservoir =
-            well->getReservoir();
-
-        if (reservoir == nullptr)
-        {
-            continue;
-        }
-
-        const Location& location =
-            reservoir->getLocation();
-
         SDL_FPoint position =
-            worldToScreen(
-                static_cast<float>(location.getX()),
-                static_cast<float>(location.getY())
-            );
-
-        // Use exactly the same offset as rendering
-        const int wellIndex =
-            well->getId() - 1;
-
-        const float offsetDistance =
-            16.0f;
-
-        const float angleStep =
-            0.785398f;
-
-        const float angle =
-            static_cast<float>(wellIndex) *
-            angleStep;
-
-        position.x +=
-            std::cos(angle) * offsetDistance;
-
-        position.y +=
-            std::sin(angle) * offsetDistance;
+            getWellScreenPosition(*well);
 
         dx =
             mouseX - position.x;
@@ -779,37 +767,8 @@ void Renderer::selectObjectAt(
     for (const auto& storage :
          company.getStorageFacilities())
     {
-        const Location& location =
-            storage->getLocation();
-
         SDL_FPoint position =
-            worldToScreen(
-                static_cast<float>(
-                    location.getX()
-                ),
-                static_cast<float>(
-                    location.getY()
-                )
-            );
-
-        const int storageIndex =
-            storage->getId() - 1;
-
-        const float offsetDistance =
-            20.0f;
-
-        const float angleStep =
-            0.785398f;
-
-        const float angle =
-            static_cast<float>(storageIndex) *
-            angleStep;
-
-        position.x +=
-            std::cos(angle) * offsetDistance;
-
-        position.y +=
-            std::sin(angle) * offsetDistance;
+            getStorageScreenPosition(*storage);
 
         dx = mouseX - position.x;
         dy = mouseY - position.y;
