@@ -392,6 +392,58 @@ SDL_FPoint Renderer::worldToScreen(
     return screenPoint;
 }
 
+const Reservoir* Renderer::findReservoirById(
+    const Company& company,
+    int id
+) const
+{
+    for (const auto& reservoir :
+         company.getReservoirs())
+    {
+        if (reservoir->getId() == id)
+        {
+            return reservoir.get();
+        }
+    }
+
+    return nullptr;
+}
+
+const Well* Renderer::findWellById(
+    const Company& company,
+    int id
+) const
+{
+    for (const auto& well :
+         company.getWells())
+    {
+        if (well->getId() == id)
+        {
+            return well.get();
+        }
+    }
+
+    return nullptr;
+}
+
+const StorageFacility* Renderer::findStorageById(
+    const Company& company,
+    int id
+) const
+{
+    for (const auto& storage :
+         company.getStorageFacilities())
+    {
+        if (storage->getId() == id)
+        {
+            return storage.get();
+        }
+    }
+
+    return nullptr;
+}
+
+
 SDL_FPoint Renderer::getWellScreenPosition(
     const Well& well
 ) const
@@ -1207,7 +1259,7 @@ void Renderer::renderInformationPanel(
     const float panelY = 20.0f;
 
     const float panelWidth = 300.0f;
-    const float panelHeight = 220.0f;
+    const float panelHeight = 250.0f;
 
     SDL_FRect panel{
         panelX,
@@ -1338,248 +1390,404 @@ void Renderer::renderInformationPanel(
     }
 
     // -------------------------------------------------
-    // Reservoir
-    // -------------------------------------------------
+// Reservoir
+// -------------------------------------------------
 
-    if (selectedObjectType ==
-        SelectedObjectType::Reservoir)
+if (selectedObjectType ==
+    SelectedObjectType::Reservoir)
+{
+    const Reservoir* reservoir =
+        findReservoirById(
+            company,
+            selectedObjectId
+        );
+
+    if (reservoir == nullptr)
     {
-        for (const auto& reservoir :
-             company.getReservoirs())
+        return;
+    }
+
+    renderPanelText(
+        textX,
+        textY,
+        "RESERVOIR"
+    );
+
+    char buffer[128];
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "ID: %d",
+        reservoir->getId()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 25.0f,
+        buffer
+    );
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Name: %s",
+        reservoir->getName().c_str()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 50.0f,
+        buffer
+    );
+
+    const Location& location =
+        reservoir->getLocation();
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Location: %.1f, %.1f",
+        location.getX(),
+        location.getY()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 75.0f,
+        buffer
+    );
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Initial reserves: %.0f bbl",
+        reservoir->getInitialReserves()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 100.0f,
+        buffer
+    );
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Remaining: %.0f bbl",
+        reservoir->getRemainingReserves()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 125.0f,
+        buffer
+    );
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Pressure: %.1f",
+        reservoir->getCurrentPressure()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 150.0f,
+        buffer
+    );
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Depth: %.0f m",
+        reservoir->getDepth()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 175.0f,
+        buffer
+    );
+
+    int wellCount = 0;
+
+    for (const auto& well :
+         company.getWells())
+    {
+        const Reservoir* wellReservoir =
+            well->getReservoir();
+
+        if (wellReservoir != nullptr &&
+            wellReservoir->getId() ==
+                reservoir->getId())
         {
-            if (reservoir->getId() !=
-                selectedObjectId)
-            {
-                continue;
-            }
-
-            renderPanelText(
-                textX,
-                textY,
-                "RESERVOIR"
-            );
-
-            char buffer[128];
-
-            std::snprintf(
-                buffer,
-                sizeof(buffer),
-                "ID: %d",
-                reservoir->getId()
-            );
-
-            renderPanelText(
-                textX,
-                textY + 25.0f,
-                buffer
-            );
-
-            std::snprintf(
-                buffer,
-                sizeof(buffer),
-                "Name: %s",
-                reservoir->getName().c_str()
-            );
-
-            renderPanelText(
-                textX,
-                textY + 50.0f,
-                buffer
-            );
-
-            const Location& location =
-                reservoir->getLocation();
-
-            std::snprintf(
-                buffer,
-                sizeof(buffer),
-                "Location: %.1f, %.1f",
-                location.getX(),
-                location.getY()
-            );
-
-            renderPanelText(
-                textX,
-                textY + 75.0f,
-                buffer
-            );
-
-            std::snprintf(
-                buffer,
-                sizeof(buffer),
-                "Reserves: %.0f bbl",
-                reservoir->getRemainingReserves()
-            );
-
-            renderPanelText(
-                textX,
-                textY + 100.0f,
-                buffer
-            );
-
-            std::snprintf(
-                buffer,
-                sizeof(buffer),
-                "Pressure: %.1f",
-                reservoir->getCurrentPressure()
-            );
-
-            renderPanelText(
-                textX,
-                textY + 125.0f,
-                buffer
-            );
-
-            std::snprintf(
-                buffer,
-                sizeof(buffer),
-                "Depth: %.0f m",
-                reservoir->getDepth()
-            );
-
-            renderPanelText(
-                textX,
-                textY + 150.0f,
-                buffer
-            );
-
-            return;
+            ++wellCount;
         }
     }
 
-    // -------------------------------------------------
-    // Well
-    // -------------------------------------------------
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Wells: %d",
+        wellCount
+    );
 
-    if (selectedObjectType ==
-        SelectedObjectType::Well)
+    renderPanelText(
+        textX,
+        textY + 200.0f,
+        buffer
+    );
+
+    return;
+}
+
+    // -------------------------------------------------
+// Well
+// -------------------------------------------------
+
+if (selectedObjectType ==
+    SelectedObjectType::Well)
+{
+    const Well* well =
+        findWellById(
+            company,
+            selectedObjectId
+        );
+
+    if (well == nullptr)
     {
-        for (const auto& well :
-             company.getWells())
-        {
-            if (well->getId() !=
-                selectedObjectId)
-            {
-                continue;
-            }
-
-            renderPanelText(
-                textX,
-                textY,
-                "WELL"
-            );
-
-            char buffer[128];
-
-            std::snprintf(
-                buffer,
-                sizeof(buffer),
-                "ID: %d",
-                well->getId()
-            );
-
-            renderPanelText(
-                textX,
-                textY + 25.0f,
-                buffer
-            );
-
-            std::snprintf(
-                buffer,
-                sizeof(buffer),
-                "Capability: %.1f",
-                well->getMaxProductionRate()
-            );
-
-            renderPanelText(
-                textX,
-                textY + 50.0f,
-                buffer
-            );
-
-            std::snprintf(
-                buffer,
-                sizeof(buffer),
-                "Production: %.1f bbl/day",
-                well->calculateProduction()
-            );
-
-            renderPanelText(
-                textX,
-                textY + 75.0f,
-                buffer
-            );
-
-            return;
-        }
+        return;
     }
 
-    // -------------------------------------------------
-    // Storage
-    // -------------------------------------------------
+    renderPanelText(
+        textX,
+        textY,
+        "WELL"
+    );
 
-    if (selectedObjectType ==
-        SelectedObjectType::Storage)
+    char buffer[128];
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "ID: %d",
+        well->getId()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 25.0f,
+        buffer
+    );
+
+    const Reservoir* reservoir =
+        well->getReservoir();
+
+    if (reservoir != nullptr)
     {
-        for (const auto& storage :
-             company.getStorageFacilities())
-        {
-            if (storage->getId() !=
-                selectedObjectId)
-            {
-                continue;
-            }
+        std::snprintf(
+            buffer,
+            sizeof(buffer),
+            "Reservoir: %s",
+            reservoir->getName().c_str()
+        );
 
-            renderPanelText(
-                textX,
-                textY,
-                "STORAGE FACILITY"
-            );
-
-            char buffer[128];
-
-            std::snprintf(
-                buffer,
-                sizeof(buffer),
-                "ID: %d",
-                storage->getId()
-            );
-
-            renderPanelText(
-                textX,
-                textY + 25.0f,
-                buffer
-            );
-
-            std::snprintf(
-                buffer,
-                sizeof(buffer),
-                "Capacity: %.0f bbl",
-                storage->getCapacity()
-            );
-
-            renderPanelText(
-                textX,
-                textY + 50.0f,
-                buffer
-            );
-
-            std::snprintf(
-                buffer,
-                sizeof(buffer),
-                "Stored: %.0f bbl",
-                storage->getInventory()
-            );
-
-            renderPanelText(
-                textX,
-                textY + 75.0f,
-                buffer
-            );
-
-            return;
-        }
+        renderPanelText(
+            textX,
+            textY + 50.0f,
+            buffer
+        );
     }
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Capability: %.1f bbl/day",
+        well->getMaxProductionRate()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 75.0f,
+        buffer
+    );
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Production: %.1f bbl/day",
+        well->calculateProduction()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 100.0f,
+        buffer
+    );
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Status: %s",
+        wellStatusToString(
+            well->getStatus()
+        ).c_str()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 125.0f,
+        buffer
+    );
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Maintenance: %s",
+        maintenanceStateToString(
+            well->getMaintenanceState()
+        ).c_str()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 150.0f,
+        buffer
+    );
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Repair days: %d",
+        well->getRepairDaysRemaining()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 175.0f,
+        buffer
+    );
+
+    return;
+}
+
+    // -------------------------------------------------
+// Storage
+// -------------------------------------------------
+
+if (selectedObjectType ==
+    SelectedObjectType::Storage)
+{
+    const StorageFacility* storage =
+        findStorageById(
+            company,
+            selectedObjectId
+        );
+
+    if (storage == nullptr)
+    {
+        return;
+    }
+
+    renderPanelText(
+        textX,
+        textY,
+        "STORAGE FACILITY"
+    );
+
+    char buffer[128];
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "ID: %d",
+        storage->getId()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 25.0f,
+        buffer
+    );
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Capacity: %.0f bbl",
+        storage->getCapacity()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 50.0f,
+        buffer
+    );
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Stored: %.0f bbl",
+        storage->getInventory()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 75.0f,
+        buffer
+    );
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Available: %.0f bbl",
+        storage->getAvailableCapacity()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 100.0f,
+        buffer
+    );
+
+    const char* status =
+        storage->isBuilt()
+            ? "BUILT"
+            : storage->isUnderConstruction()
+                ? "CONSTRUCTING"
+                : "NOT BUILT";
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Status: %s",
+        status
+    );
+
+    renderPanelText(
+        textX,
+        textY + 125.0f,
+        buffer
+    );
+
+    if (storage->isUnderConstruction())
+    {
+        std::snprintf(
+            buffer,
+            sizeof(buffer),
+            "Construction days: %d",
+            storage->getConstructionDaysRemaining()
+        );
+
+        renderPanelText(
+            textX,
+            textY + 150.0f,
+            buffer
+        );
+    }
+
+    return;
+}
 
     // -------------------------------------------------
     // Transportation

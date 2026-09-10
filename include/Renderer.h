@@ -6,6 +6,7 @@
 class Well;
 class StorageFacility;
 class Company;
+class Reservoir;
 
 enum class SelectedObjectType
 {
@@ -105,12 +106,28 @@ private:
         const char* text
     );
 
+    
     SDL_FPoint getWellScreenPosition(
         const Well& well
     ) const;
 
     SDL_FPoint getStorageScreenPosition(
         const StorageFacility& storage
+    ) const;
+
+    const Reservoir* findReservoirById(
+        const Company& company,
+        int id
+    ) const;
+
+    const Well* findWellById(
+        const Company& company,
+        int id
+    ) const;
+
+    const StorageFacility* findStorageById(
+        const Company& company,
+        int id
     ) const;
 
     void clampCamera();
