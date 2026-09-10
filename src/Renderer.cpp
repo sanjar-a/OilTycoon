@@ -1461,26 +1461,13 @@ if (selectedObjectType ==
     std::snprintf(
         buffer,
         sizeof(buffer),
-        "Initial reserves: %.0f bbl",
-        reservoir->getInitialReserves()
-    );
-
-    renderPanelText(
-        textX,
-        textY + 100.0f,
-        buffer
-    );
-
-    std::snprintf(
-        buffer,
-        sizeof(buffer),
-        "Remaining: %.0f bbl",
+        "Reserves: %.0f bbl",
         reservoir->getRemainingReserves()
     );
 
     renderPanelText(
         textX,
-        textY + 125.0f,
+        textY + 100.0f,
         buffer
     );
 
@@ -1493,7 +1480,7 @@ if (selectedObjectType ==
 
     renderPanelText(
         textX,
-        textY + 150.0f,
+        textY + 125.0f,
         buffer
     );
 
@@ -1506,37 +1493,16 @@ if (selectedObjectType ==
 
     renderPanelText(
         textX,
-        textY + 175.0f,
+        textY + 150.0f,
         buffer
-    );
-
-    int wellCount = 0;
-
-    for (const auto& well :
-         company.getWells())
-    {
-        const Reservoir* wellReservoir =
-            well->getReservoir();
-
-        if (wellReservoir != nullptr &&
-            wellReservoir->getId() ==
-                reservoir->getId())
-        {
-            ++wellCount;
-        }
-    }
-
-    std::snprintf(
-        buffer,
-        sizeof(buffer),
-        "Wells: %d",
-        wellCount
     );
 
     renderPanelText(
         textX,
-        textY + 200.0f,
-        buffer
+        textY + 175.0f,
+        reservoir->isDepleted()
+            ? "Status: Depleted"
+            : "Status: Active"
     );
 
     return;
