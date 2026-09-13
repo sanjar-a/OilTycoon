@@ -7,6 +7,7 @@ class Well;
 class StorageFacility;
 class Company;
 class Reservoir;
+class HUD;
 
 enum class SelectedObjectType
 {
@@ -42,6 +43,7 @@ public:
 private:
     SDL_Window* window;
     SDL_Renderer* renderer;
+    HUD* hud;
 
     float cameraX;
     float cameraY;

@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "Company.h"
+#include "HUD.h"
 #include <cmath>
 #include <cstdio>
 #include <iostream>
@@ -19,12 +20,16 @@ Renderer::Renderer()
       screenWidth(1280),
       screenHeight(720),
       selectedObjectType(SelectedObjectType::None),
-      selectedObjectId(-1)
+      selectedObjectId(-1),
+      hud(nullptr)
 {
+    hud = new HUD();
 }
 
 Renderer::~Renderer()
 {
+    delete hud;
+    hud = nullptr;
     shutdown();
 }
 
@@ -93,7 +98,8 @@ void Renderer::shutdown()
         SDL_DestroyWindow(window);
         window = nullptr;
     }
-
+    delete hud;
+    hud = nullptr;
     SDL_Quit();
 }
 
@@ -371,6 +377,15 @@ void Renderer::render(const Company& company)
     );
     renderSelection(company);
     renderInformationPanel(company);
+    
+    if (hud != nullptr)
+    {
+        hud->render(
+            renderer,
+            company
+        );
+    }
+
     SDL_RenderPresent(renderer);
 }
 
