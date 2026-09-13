@@ -1534,6 +1534,7 @@ if (selectedObjectType ==
 
     char buffer[128];
 
+    // ID
     std::snprintf(
         buffer,
         sizeof(buffer),
@@ -1547,16 +1548,14 @@ if (selectedObjectType ==
         buffer
     );
 
-    const Reservoir* reservoir =
-        well->getReservoir();
-
-    if (reservoir != nullptr)
+    // Reservoir
+    if (well->getReservoir() != nullptr)
     {
         std::snprintf(
             buffer,
             sizeof(buffer),
-            "Reservoir: %s",
-            reservoir->getName().c_str()
+            "Reservoir: %d",
+            well->getReservoir()->getId()
         );
 
         renderPanelText(
@@ -1566,11 +1565,14 @@ if (selectedObjectType ==
         );
     }
 
+    // Production technology
     std::snprintf(
         buffer,
         sizeof(buffer),
-        "Capability: %.1f bbl/day",
-        well->getMaxProductionRate()
+        "Technology: %s",
+        productionTechnologyToString(
+            well->getProductionTechnology()
+        ).c_str()
     );
 
     renderPanelText(
@@ -1579,19 +1581,7 @@ if (selectedObjectType ==
         buffer
     );
 
-    std::snprintf(
-        buffer,
-        sizeof(buffer),
-        "Production: %.1f bbl/day",
-        well->calculateProduction()
-    );
-
-    renderPanelText(
-        textX,
-        textY + 100.0f,
-        buffer
-    );
-
+    // Well status
     std::snprintf(
         buffer,
         sizeof(buffer),
@@ -1603,10 +1593,11 @@ if (selectedObjectType ==
 
     renderPanelText(
         textX,
-        textY + 125.0f,
+        textY + 100.0f,
         buffer
     );
 
+    // Maintenance
     std::snprintf(
         buffer,
         sizeof(buffer),
@@ -1618,15 +1609,30 @@ if (selectedObjectType ==
 
     renderPanelText(
         textX,
+        textY + 125.0f,
+        buffer
+    );
+
+    // Maximum production
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Max production: %.1f bbl/day",
+        well->getMaxProductionRate()
+    );
+
+    renderPanelText(
+        textX,
         textY + 150.0f,
         buffer
     );
 
+    // Current production
     std::snprintf(
         buffer,
         sizeof(buffer),
-        "Repair days: %d",
-        well->getRepairDaysRemaining()
+        "Production: %.1f bbl/day",
+        well->calculateProduction()
     );
 
     renderPanelText(
@@ -1635,10 +1641,27 @@ if (selectedObjectType ==
         buffer
     );
 
+    // Repair information
+    if (well->getRepairDaysRemaining() > 0)
+    {
+        std::snprintf(
+            buffer,
+            sizeof(buffer),
+            "Repair days: %d",
+            well->getRepairDaysRemaining()
+        );
+
+        renderPanelText(
+            textX,
+            textY + 200.0f,
+            buffer
+        );
+    }
+
     return;
 }
 
-    // -------------------------------------------------
+// -------------------------------------------------
 // Storage
 // -------------------------------------------------
 
