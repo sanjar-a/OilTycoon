@@ -1687,6 +1687,7 @@ if (selectedObjectType ==
 
     char buffer[128];
 
+    // ID
     std::snprintf(
         buffer,
         sizeof(buffer),
@@ -1700,6 +1701,64 @@ if (selectedObjectType ==
         buffer
     );
 
+    // Location
+    const Location& location =
+        storage->getLocation();
+
+    std::snprintf(
+        buffer,
+        sizeof(buffer),
+        "Location: %.1f, %.1f",
+        location.getX(),
+        location.getY()
+    );
+
+    renderPanelText(
+        textX,
+        textY + 50.0f,
+        buffer
+    );
+
+    // Construction status
+    if (storage->isUnderConstruction())
+    {
+        renderPanelText(
+            textX,
+            textY + 75.0f,
+            "Status: Under Construction"
+        );
+
+        std::snprintf(
+            buffer,
+            sizeof(buffer),
+            "Days remaining: %d",
+            storage->getConstructionDaysRemaining()
+        );
+
+        renderPanelText(
+            textX,
+            textY + 100.0f,
+            buffer
+        );
+    }
+    else if (storage->isBuilt())
+    {
+        renderPanelText(
+            textX,
+            textY + 75.0f,
+            "Status: Operational"
+        );
+    }
+    else
+    {
+        renderPanelText(
+            textX,
+            textY + 75.0f,
+            "Status: Not Built"
+        );
+    }
+
+    // Capacity
     std::snprintf(
         buffer,
         sizeof(buffer),
@@ -1709,10 +1768,11 @@ if (selectedObjectType ==
 
     renderPanelText(
         textX,
-        textY + 50.0f,
+        textY + 125.0f,
         buffer
     );
 
+    // Inventory
     std::snprintf(
         buffer,
         sizeof(buffer),
@@ -1722,10 +1782,11 @@ if (selectedObjectType ==
 
     renderPanelText(
         textX,
-        textY + 75.0f,
+        textY + 150.0f,
         buffer
     );
 
+    // Available capacity
     std::snprintf(
         buffer,
         sizeof(buffer),
@@ -1735,45 +1796,23 @@ if (selectedObjectType ==
 
     renderPanelText(
         textX,
-        textY + 100.0f,
+        textY + 175.0f,
         buffer
     );
 
-    const char* status =
-        storage->isBuilt()
-            ? "BUILT"
-            : storage->isUnderConstruction()
-                ? "CONSTRUCTING"
-                : "NOT BUILT";
-
+    // Operating cost
     std::snprintf(
         buffer,
         sizeof(buffer),
-        "Status: %s",
-        status
+        "Cost: %.2f / bbl",
+        storage->getCostPerBarrel()
     );
 
     renderPanelText(
         textX,
-        textY + 125.0f,
+        textY + 200.0f,
         buffer
     );
-
-    if (storage->isUnderConstruction())
-    {
-        std::snprintf(
-            buffer,
-            sizeof(buffer),
-            "Construction days: %d",
-            storage->getConstructionDaysRemaining()
-        );
-
-        renderPanelText(
-            textX,
-            textY + 150.0f,
-            buffer
-        );
-    }
 
     return;
 }
